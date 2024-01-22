@@ -1,9 +1,21 @@
 [package]
 name = "core"
 version = "0.1.0"
-edition = "2021"
+
+# Workspace inherited keys
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
 
 [dependencies]
-anyhow = "1.0.79"
-bevy = "0.12.1"
-nannou = "0.19.0"
+# External
+anyhow = { workspace = true }
+bevy = { workspace = true }
+bevy_prototype_lyon = { workspace = true }
+clap = { workspace = true }
+rand = { workspace = true }
+sha2 = { workspace = true }
+

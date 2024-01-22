@@ -1,5 +1,6 @@
 # Mine
 *.swp
+/out/
 
 # From https://github.com/rust-lang/rust/blob/master/.gitignore
 *~

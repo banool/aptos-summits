@@ -1,28 +1,119 @@
+use bevy::prelude::*;
+use bevy::window::WindowResolution;
+use bevy_prototype_lyon::prelude::*;
+use clap::Parser;
+use rand::SeedableRng;
+use rand::{rngs::SmallRng, Rng};
+use sha2::{Digest, Sha256};
 
+const WIDTH: f32 = 1600.0;
 
-/*
-use rand::{Rng, ThreadRng};
-use std::{fs::File, path::Path};
-use image::{ImageBuffer, Rgb, ImageRgb8, PNG, RgbImage};
-use imageproc::drawing::draw_filled_circle_mut;
-use imageproc::pixelops::interpolate;
+// TODO: Make the clap stuff conditional behind a feature.
+#[derive(Clone, Debug, Parser)]
+pub struct AppConfig {
+    #[clap(long, default_value_t = 1600.)]
+    pub width: f32,
 
+    // TODO: If we can make the Rust SDK less massive, use AccountAddress instead.
+    #[clap(long)]
+    pub token_address: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct WebConfig {
+    pub html_canvas_id: String,
+}
+
+#[derive(Resource)]
+pub struct AppSeed {
+    pub token_address: String,
+}
+
+impl AppConfig {
+    pub fn run(self, web_config: Option<WebConfig>) {
+        let mut app = App::new();
+
+        let resolution = WindowResolution::new(self.width, self.width);
+        let window = match web_config {
+            Some(web_config) => Window {
+                resolution,
+                canvas: Some(web_config.html_canvas_id),
+                fit_canvas_to_parent: true,
+                ..default()
+            },
+            None => Window {
+                resolution,
+                ..default()
+            },
+        };
+
+        // From https://bevy-cheatbook.github.io/platforms/wasm/webpage.html#custom-canvas.
+        app.add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(window),
+            ..default()
+        }))
+        .insert_resource(AppSeed {
+            token_address: self.token_address,
+        })
+        .add_plugins(ShapePlugin)
+        .add_systems(Startup, setup_system);
+
+        app.run();
+    }
+}
+
+fn setup_system(mut commands: Commands, app_seed: Res<AppSeed>) {
+    // Convert the token address into a u64 for the seed.
+    let mut hasher = Sha256::new();
+    hasher.update(&app_seed.token_address);
+    let result = hasher.finalize();
+    let first_eight_bytes = &result[0..8];
+    let seed = u64::from_be_bytes(first_eight_bytes.try_into().unwrap());
+
+    // Build deterministic rng with seed.
+    let mut rng = SmallRng::seed_from_u64(seed);
+
+    // Generate mountains.
+    let mountains = vec![Mountain::new(&mut rng, WIDTH as u32, 50., 300.)];
+
+    // Draw mountains.
+    for mountain in mountains {
+        draw_mountain(&mut commands, &mountain);
+    }
+}
+
+fn draw_mountain(commands: &mut Commands, mountain: &Mountain) {
+    let mut path_builder = PathBuilder::new();
+
+    for (i, y) in mountain.heights().iter().enumerate() {
+        let x = (i as i32 - WIDTH as i32) as f32;
+        let point = Vec2::new(x, *y);
+        path_builder.line_to(point);
+    }
+
+    path_builder.close();
+    let path = path_builder.build();
+
+    commands.spawn(Camera2dBundle::default());
+    commands.spawn((ShapeBundle { path, ..default() }, Fill::color(Color::RED)));
+}
+
+#[derive(Component)]
 struct Mountain {
-    points: Vec<u32>,
+    heights: Vec<f32>,
 }
 
 impl Mountain {
-    pub fn new(min_height: f64, max_height: f64) -> Mountain {
-        let mut rng = rand::thread_rng();
-        let step_max = rng.gen_range(0.9, 1.1);
-        let step_change = rng.gen_range(0.15, 0.35);
-        let mut height = rng.gen_range(0.0, height_max);
-        let mut slope = rng.gen_range(0.0, step_max) * 2.0 - step_max;
-        let mut points: Vec<u32> = Vec::new();
+    pub fn new(rng: &mut SmallRng, width: u32, min_height: f64, max_height: f64) -> Self {
+        let step_max = rng.gen_range(0.9..1.1);
+        let step_change = rng.gen_range(0.15..0.35);
+        let mut height = rng.gen_range(0.0..max_height);
+        let mut slope = rng.gen_range(0.0..step_max) * 2.0 - step_max;
+        let mut heights: Vec<f32> = Vec::new();
 
-        for _ in 0..640 {
+        for _ in 0..(width * 2) {
             height = height + slope;
-            slope = slope + (rng.gen_range(0.0, step_change) * 2.0 - step_change);
+            slope = slope + (rng.gen_range(0.0..step_change) * 2.0 - step_change);
 
             if slope > step_max {
                 slope = step_max;
@@ -30,76 +121,19 @@ impl Mountain {
                 slope = -step_max;
             }
 
-            if height > height_max {
-                height = height_max;
+            if height > max_height {
+                height = max_height;
                 slope = slope * -1.0;
-            } else if height < height_min {
-                height = height_min;
+            } else if height < min_height {
+                height = min_height;
                 slope = slope * -1.0;
             }
-            points.push(height as u32);
+            heights.push(height as f32);
         }
-        Mountain {
-            points: points
-        }
+        Mountain { heights }
     }
 
-    /*
-    fn draw(&self, img: &mut RgbImage, color: Rgb<u8>, c_fog: Rgb<u8>) {
-        let mut i = 0;
-        for &point in self.points.iter() {
-            img.put_pixel(i, point, color);
-            for j in point..480 {
-                img.put_pixel(i, j, interpolate(c_fog, color, j as f32 / 480.0));
-            }
-            i = i + 1;
-        }
+    pub fn heights(&self) -> &[f32] {
+        &self.heights
     }
-    */
 }
-
-fn rgb_rand(rng: &mut ThreadRng, r: (u8, u8), g: (u8, u8), b: (u8, u8)) -> Rgb<u8> {
-    Rgb([rng.gen_range(r.0, r.1), rng.gen_range(g.0, g.1), rng.gen_range(b.0, b.1)])
-}
-
-fn main() {
-    let mut rng = rand::thread_rng();
-    let c_sky = match rng.gen_range(1, 4) {
-        1 => rgb_rand(&mut rng, (1, 40), (1, 40), (1, 40)),
-        2 => rgb_rand(&mut rng, (215, 225), (215, 225), (230, 255)),
-        _ => rgb_rand(&mut rng, (200, 255), (200, 255), (200, 255)),
-    };
-    let c_fog = rgb_rand(&mut rng, (1, 255), (1, 255), (1, 255));
-    let mut img = ImageBuffer::from_pixel(640, 480, c_sky);
-
-    if rng.gen_weighted_bool(2) {
-        let x = rng.gen_range(101, 520);
-        let y = rng.gen_range(81, 200);
-        let rad = rng.gen_range(20, 80);
-        let c_planet = interpolate(rgb_rand(&mut rng, (1, 255), (1, 255), (1, 255)), c_sky, 0.1);
-        draw_filled_circle_mut(&mut img, (x, y), rad, c_planet);
-        if !rng.gen_weighted_bool(5) {
-            draw_filled_circle_mut(&mut img, (x + rng.gen_range(-2, 4) * 10, y), rad, c_sky);
-        }
-    }
-
-    for (_, y, pixel) in img.enumerate_pixels_mut() {
-        *pixel = interpolate(c_fog, *pixel, y as f32 / 1000.0);
-    }
-
-    let mountain_count: u32 = rng.gen_range(4, 7);
-    let c_mountain = rgb_rand(&mut rng, (1, 255), (1, 255), (1, 255));
-    for i in 0..mountain_count {
-        let c = interpolate(c_mountain, c_sky, (i + 1) as f32 / mountain_count as f32);
-        let y_amp = ( (399 - 480 / 2 / mountain_count * (mountain_count - i)) as f64, 401.0 );
-        Mountain::new(y_amp).draw(&mut img, c, c_fog);
-    }
-
-    let _ = ImageRgb8(img).save(&mut File::create(&Path::new("images/export.png")).unwrap(), PNG);
-}
-
-
-fn blah() {
-    println!("Hello, world!");
-}
-*/
