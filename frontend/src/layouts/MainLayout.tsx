@@ -114,7 +114,6 @@ export default function MainLayout({ children }: LayoutProps) {
             {headerMiddle}
           </Flex>
           <Flex justifyContent="flex-end" alignItems="center" gap="2" flex="1">
-            <NetworkSelect />
             <WalletSelector />
           </Flex>
         </Flex>
@@ -122,6 +121,9 @@ export default function MainLayout({ children }: LayoutProps) {
       {children}
     </Box>
   );
+
+  // Hiding this for now since it's testnet only.
+  //            <NetworkSelect />
 
   // Blur the content if we're connecting a wallet.
   /*

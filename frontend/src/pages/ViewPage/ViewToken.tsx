@@ -39,8 +39,8 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
       {button}
       {!loaded && (
         <Text p={5}>
-          Refresh the page and try again if the image doesn't load in 5 or
-          seconds.
+          Refresh the page and try again if the image doesn't load in 10 or so
+          seconds after pressing the button.
         </Text>
       )}
       <Box filter={loading ? "blur(4px)" : "none"}>
