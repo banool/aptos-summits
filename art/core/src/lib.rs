@@ -79,6 +79,7 @@ fn interpolate(left: Color, right: Color, left_weight: f32) -> Color {
     Color::rgba(red, green, blue, alpha)
 }
 
+// TODO: Move this to to an update system and scroll each mountain layer.
 fn setup_system(mut commands: Commands, window: Query<&Window>, app_seed: Res<AppSeed>) {
     // Convert the token address into a u64 for the seed.
     let mut hasher = Sha256::new();
@@ -158,8 +159,8 @@ impl Mountain {
         let mut heights: Vec<f32> = Vec::new();
 
         for _ in 0..(width * 2) {
-            height = height + slope;
-            slope = slope + (rng.gen_range(0.0..step_change) * 2.0 - step_change);
+            height += slope;
+            slope += rng.gen_range(0.0..step_change) * 2.0 - step_change;
 
             if slope > step_max {
                 slope = step_max;
@@ -169,10 +170,10 @@ impl Mountain {
 
             if height > max_height {
                 height = max_height;
-                slope = slope * -1.0;
+                slope *= -1.0;
             } else if height < min_height {
                 height = min_height;
-                slope = slope * -1.0;
+                slope *= -1.0;
             }
             heights.push(height as f32);
         }

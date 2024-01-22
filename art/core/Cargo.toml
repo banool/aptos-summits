@@ -12,7 +12,6 @@ rust-version = { workspace = true }
 
 [dependencies]
 # External
-anyhow = { workspace = true }
 bevy = { workspace = true }
 bevy_prototype_lyon = { workspace = true }
 clap = { workspace = true }
