@@ -4,13 +4,15 @@
 module addr::summits_token {
     use addr::summits_collection::{
         is_owner as is_owner_of_collection,
+        get_collection_name,
+        get_collection_owner_signer,
     };
     use std::option;
+    use std::signer;
     use std::string::{Self, String};
     use aptos_framework::chain_id::{get as get_chain_id};
     use aptos_std::object::{Self, Object};
     use aptos_std::string_utils;
-    use aptos_token_objects::collection::{Self, Collection};
     use aptos_token_objects::token::{Self, MutatorRef};
 
     /// The caller tried to call a function that requires collection owner privileges.
@@ -25,10 +27,8 @@ module addr::summits_token {
     /// Create a new canvas.
     public entry fun mint(
         caller: &signer,
-        // The collection to create the token in.
-        collection: Object<Collection>,
     ) {
-        mint_(caller, collection);
+        mint_(caller);
     }
 
     // This function is separate from the top level mint function so we can use it
@@ -52,23 +52,31 @@ module addr::summits_token {
     // account and store a signercap. I use that to make a signer.
     //
     // https://aptos-org.slack.com/archives/C036X27DZNG/p1705852198895739
+    //
+    // TODO: I gave up on this extensible design where it takes an Object<Collection>
+    // and just made this module hardcoded to support a single collection.
     fun mint_(
         caller: &signer,
-        collection: Object<Collection>,
     ): Object<TokenRefs> {
+        let caller_addr = signer::address_of(caller);
+
         // TODO: Add on chain allowlist instead.
         // assert_caller_is_collection_owner(caller, collection);
 
-        let description = string::utf8(b"todo");
-        let name = string::utf8(b"todo");
+        let description = string::utf8(b"Summits created for the 2024 Aptos Ecosystem Summit. View your summit live here: https://summits.dport.me/.");
+        let name_prefix = string::utf8(b"Aptos Summit #");
+        let name_suffix = string::utf8(b"");
+
+        // Get the signer of the owner of the collection.
+        let collection_owner_signer = get_collection_owner_signer();
 
         // Create the token. This mints an ObjectCore and Token.
-        // TODO: Check if aggregator v2 is enabled. If so, use mint_numbered_token.
-        let constructor_ref = token::create(
-            caller,
-            collection::name(collection),
+        let constructor_ref = token::create_numbered_token(
+            &collection_owner_signer,
+            get_collection_name(),
             description,
-            name,
+            name_prefix,
+            name_suffix,
             option::none(),
             // We use a dummy URI and then change it after once we know the object address.
             string::utf8(b"dummy"),
@@ -114,6 +122,11 @@ module addr::summits_token {
         // Set the real URI.
         token::set_uri(&token::generate_mutator_ref(&constructor_ref), uri);
 
+        // Transfer ownership of the token to the minter.
+        let transfer_ref = object::generate_transfer_ref(&constructor_ref);
+        let linear_transfer_ref = object::generate_linear_transfer_ref(&transfer_ref);
+        object::transfer_with_ref(linear_transfer_ref, caller_addr);
+
         obj
     }
 
@@ -121,8 +134,8 @@ module addr::summits_token {
     //                                  Collection owner                             //
     ///////////////////////////////////////////////////////////////////////////////////
 
-    fun assert_caller_is_collection_owner(caller: &signer, collection: Object<Collection>) {
-        assert!(is_owner_of_collection(caller, collection), E_CALLER_NOT_COLLECTION_OWNER);
+    fun assert_caller_is_collection_owner(caller: &signer) {
+        assert!(is_owner_of_collection(caller), E_CALLER_NOT_COLLECTION_OWNER);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -133,8 +146,7 @@ module addr::summits_token {
     /// Set the URI for the token. This is necessary if down the line we change how we
     /// generate the image.
     public entry fun set_uri(caller: &signer, refs: Object<TokenRefs>, uri: String) acquires TokenRefs {
-        let collection = token::collection_object(refs);
-        assert_caller_is_collection_owner(caller, collection);
+        assert_caller_is_collection_owner(caller);
         let object_addr = object::object_address(&refs);
         let refs_ = borrow_global<TokenRefs>(object_addr);
         token::set_uri(&refs_.mutator_ref, uri);
@@ -156,8 +168,6 @@ module addr::summits_token {
     use aptos_framework::coin;
     #[test_only]
     use aptos_framework::chain_id;
-    #[test_only]
-    use std::signer;
 
     #[test_only]
     const ONE_APT: u64 = 100000000;
@@ -208,24 +218,19 @@ module addr::summits_token {
     }
 
     #[test_only]
-    fun get_collection(): Object<Collection> {
-        let name = string::utf8(b"test");
-        let collection_address = collection::create_collection_address(&@addr, &name);
-        object::address_to_object<Collection>(collection_address)
-    }
-
-    #[test_only]
     fun mint_token(
         caller: &signer,
     ): Object<TokenRefs> {
-        mint_(caller, get_collection())
+        mint_(caller)
     }
 
+    // See that not just the creator can mint a token.
     #[test(caller = @addr, friend1 = @0x456, friend2 = @0x789, aptos_framework = @aptos_framework)]
     fun test_mint(caller: signer, friend1: signer, friend2: signer, aptos_framework: signer) {
         init_test(&caller, &friend1, &friend2, &aptos_framework);
-        // This only works if the caller is `caller`. See the comment above mint_.
-        let tok = mint_token(&caller);
-        aptos_std::debug::print(&token::uri(tok));
+        let tok1 = mint_token(&caller);
+        aptos_std::debug::print(&token::uri(tok1));
+        let tok2 = mint_token(&friend1);
+        aptos_std::debug::print(&token::uri(tok2));
     }
 }
