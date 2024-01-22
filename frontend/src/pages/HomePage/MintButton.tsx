@@ -101,14 +101,15 @@ export const MintButton = () => {
   let onClick = null;
   if (!buttonEnabled) {
     buttonText = "Connect Wallet";
+    onClick = () => navigate(`/${tokenAddress}?network=${globalState.network}`);
   } else if (isLoading) {
     buttonText = "Loading...";
-  } else if (data && data.length > 0) {
-    buttonText = "View";
-    onClick = () => navigate(`/${data[0]}?network=${globalState.network}`);
   } else if (tokenAddress) {
     buttonText = "Reveal";
     onClick = () => navigate(`/${tokenAddress}?network=${globalState.network}`);
+  } else if (data && data.length > 0) {
+    buttonText = "View";
+    onClick = () => navigate(`/${data[0]}?network=${globalState.network}`);
   } else {
     buttonText = "Mint";
     onClick = handleSubmit;
