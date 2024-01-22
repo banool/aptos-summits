@@ -7,8 +7,6 @@ pub fn run(width: u32, token_address: String, html_canvas_id: String) {
         width: width as f32,
         token_address,
     };
-    let web_config = WebConfig {
-        html_canvas_id,
-    };
+    let web_config = WebConfig { html_canvas_id };
     app_config.run(Some(web_config));
 }

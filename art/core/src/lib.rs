@@ -1,3 +1,4 @@
+use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy_prototype_lyon::prelude::*;
@@ -5,8 +6,9 @@ use clap::Parser;
 use rand::SeedableRng;
 use rand::{rngs::SmallRng, Rng};
 use sha2::{Digest, Sha256};
+use std::ops::Range;
 
-const WIDTH: f32 = 1600.0;
+const WIDTH: f32 = 1200.0;
 
 // TODO: Make the clap stuff conditional behind a feature.
 #[derive(Clone, Debug, Parser)]
@@ -62,7 +64,22 @@ impl AppConfig {
     }
 }
 
-fn setup_system(mut commands: Commands, app_seed: Res<AppSeed>) {
+fn rand_color(rng: &mut SmallRng, r: Range<u8>, g: Range<u8>, b: Range<u8>) -> Color {
+    Color::rgb_u8(rng.gen_range(r), rng.gen_range(g), rng.gen_range(b))
+}
+
+fn interpolate(left: Color, right: Color, left_weight: f32) -> Color {
+    let right_weight = 1.0 - left_weight;
+
+    let red = left.r() * left_weight + right.r() * right_weight;
+    let green = left.g() * left_weight + right.g() * right_weight;
+    let blue = left.b() * left_weight + right.b() * right_weight;
+    let alpha = left.a() * left_weight + right.a() * right_weight;
+
+    Color::rgba(red, green, blue, alpha)
+}
+
+fn setup_system(mut commands: Commands, window: Query<&Window>, app_seed: Res<AppSeed>) {
     // Convert the token address into a u64 for the seed.
     let mut hasher = Sha256::new();
     hasher.update(&app_seed.token_address);
@@ -73,38 +90,67 @@ fn setup_system(mut commands: Commands, app_seed: Res<AppSeed>) {
     // Build deterministic rng with seed.
     let mut rng = SmallRng::seed_from_u64(seed);
 
+    // Generate sky color.
+    let sky_color = match rng.gen_range(1..4) {
+        1 => rand_color(&mut rng, 1..40, 1..40, 1..40),
+        2 => rand_color(&mut rng, 215..225, 215..225, 230..255),
+        _ => rand_color(&mut rng, 200..255, 200..255, 200..255),
+    };
+
+    // Generate fog color.
+    // let fog_color = rand_color(&mut rng, 1..255, 1..255, 1..255);
+
+    // TODO: Add stuff in sky.
+
+    // Spawn the camera with our sky color as the background
+    commands.spawn(Camera2dBundle {
+        camera_2d: Camera2d {
+            clear_color: ClearColorConfig::Custom(sky_color),
+        },
+        ..default()
+    });
+
+    let window = window.single();
+    let height = window.resolution.height() as f64;
+
     // Generate mountains.
-    let mountains = vec![Mountain::new(&mut rng, WIDTH as u32, 50., 300.)];
+    let mut mountains = Vec::new();
+    let num_mountains: u64 = rng.gen_range(3..7);
+    let mountain_base_color = rand_color(&mut rng, 1..255, 1..255, 1..255);
+    for i in 0..num_mountains {
+        let color = interpolate(
+            mountain_base_color,
+            sky_color,
+            (i + 1) as f32 / num_mountains as f32,
+        );
+        let min_height = -height / 3. / (num_mountains * (num_mountains - i)) as f64;
+        let max_height = height * 0.72;
+        let mountain = Mountain::new(&mut rng, WIDTH as u32, min_height, max_height, color);
+        mountains.push(mountain);
+    }
 
     // Draw mountains.
+    let mut z = 1.;
     for mountain in mountains {
-        draw_mountain(&mut commands, &mountain);
+        mountain.draw(&mut commands, z, &window.resolution);
+        z += 1.;
     }
-}
-
-fn draw_mountain(commands: &mut Commands, mountain: &Mountain) {
-    let mut path_builder = PathBuilder::new();
-
-    for (i, y) in mountain.heights().iter().enumerate() {
-        let x = (i as i32 - WIDTH as i32) as f32;
-        let point = Vec2::new(x, *y);
-        path_builder.line_to(point);
-    }
-
-    path_builder.close();
-    let path = path_builder.build();
-
-    commands.spawn(Camera2dBundle::default());
-    commands.spawn((ShapeBundle { path, ..default() }, Fill::color(Color::RED)));
 }
 
 #[derive(Component)]
 struct Mountain {
     heights: Vec<f32>,
+    color: Color,
 }
 
 impl Mountain {
-    pub fn new(rng: &mut SmallRng, width: u32, min_height: f64, max_height: f64) -> Self {
+    pub fn new(
+        rng: &mut SmallRng,
+        width: u32,
+        min_height: f64,
+        max_height: f64,
+        color: Color,
+    ) -> Self {
         let step_max = rng.gen_range(0.9..1.1);
         let step_change = rng.gen_range(0.15..0.35);
         let mut height = rng.gen_range(0.0..max_height);
@@ -130,10 +176,44 @@ impl Mountain {
             }
             heights.push(height as f32);
         }
-        Mountain { heights }
+        Mountain { heights, color }
     }
 
-    pub fn heights(&self) -> &[f32] {
-        &self.heights
+    pub fn draw(&self, commands: &mut Commands, z: f32, resolution: &WindowResolution) {
+        let mut path_builder = PathBuilder::new();
+
+        // Start in the bottom left corner.
+        path_builder.move_to(Vec2::new(
+            -resolution.width() / 2.,
+            -resolution.height() / 2.,
+        ));
+
+        for (i, y) in self.heights.iter().enumerate() {
+            let x = (i as i32 - WIDTH as i32) as f32;
+            let point = Vec2::new(x, *y);
+            path_builder.line_to(point);
+        }
+
+        // End in the bottom right corner.
+        path_builder.line_to(Vec2::new(
+            resolution.width() / 2.,
+            -resolution.height() / 2.,
+        ));
+
+        path_builder.close();
+        let path = path_builder.build();
+
+        // Apply z transformation so the shapes are layered properly and move
+        // everything down.
+        let transform = Transform::from_xyz(0.0, -resolution.height() / 2., z);
+
+        commands.spawn((
+            ShapeBundle {
+                path,
+                spatial: SpatialBundle::from_transform(transform),
+                ..default()
+            },
+            Fill::color(self.color),
+        ));
     }
 }

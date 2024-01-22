@@ -12,7 +12,7 @@ cargo build --release --target wasm32-unknown-unknown -p web
 wasm-bindgen ./target/wasm32-unknown-unknown/release/web.wasm --target web --out-name "summits" --out-dir /tmp/summits
 
 # Optimize the size of the wasm.
-# wasm-opt -Oz -o /tmp/summits/small.wasm /tmp/summits/summits_bg.wasm
+wasm-opt -Oz -o /tmp/summits/small.wasm /tmp/summits/summits_bg.wasm
 
 # Move it in to place.
 rm -rf ../frontend/src/summits
