@@ -1,0 +1,31 @@
+.mountain-button {
+    background: linear-gradient(to right, #c2704a, #84326d);
+  color: white; /* White text */
+  border: none; /* No border */
+  position: relative; /* Positioning for pseudo-elements */
+  cursor: pointer; /* Pointer cursor on hover */
+  overflow: hidden; /* Hides the overflow of pseudo-elements */
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%); /* Mountain shape */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes smooth-wave-animation {
+  0%, 100% {
+    transform: translateY(7px);
+  }
+  50% {
+    transform: translateY(0px);
+  }
+}
+
+.mountain-button span {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  font-size: 18px;
+  font-style: italic;
+  padding-top: 50px;
+  animation: smooth-wave-animation 3s ease-in-out infinite;
+}

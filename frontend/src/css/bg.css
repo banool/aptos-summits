@@ -1,0 +1,4 @@
+.purpleSunsetGradient {
+    background: linear-gradient(to right, #654ea3, #eaafc8);
+    color: white; /* This is to ensure text is readable on a dark background */
+  }

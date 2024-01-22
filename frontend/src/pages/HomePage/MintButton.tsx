@@ -6,16 +6,38 @@ import {
   WriteSetChangeWriteResource,
 } from "@aptos-labs/ts-sdk";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { Link as ReactRouterLink } from "react-router-dom";
+import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
 import { Link as ChakraLink } from "@chakra-ui/react";
+import "../../css/buttons.css";
+import { useTokens } from "../../api/useTokens";
 
 export const MintButton = () => {
   const { account, signAndSubmitTransaction } = useWallet();
   const [globalState] = useGlobalState();
   const [tokenAddress, setTokenAddress] = useState("");
   const toast = useToast();
+  const navigate = useNavigate();
+
+  // Add query to look up if the user has a token already.
+  // isLoading is only true the first time, not on refresh.
+  // https://redux-toolkit.js.org/rtk-query/usage/queries#frequently-used-query-hook-return-values
+  // We assume the user only has a single token, even if this isn't enforced on chain
+  // right now.
+  const { data, isLoading, isError } = useTokens(account?.address as any, {
+    enabled: account !== null,
+  });
 
   const handleSubmit = async () => {
+    if (account === null) {
+      toast({
+        title: "Connect your wallet",
+        status: "warning",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+
     const data = {
       function: getModuleIdentifier(
         globalState,
@@ -23,7 +45,7 @@ export const MintButton = () => {
         "mint",
       ) as any,
       typeArguments: [],
-      functionArguments: [globalState.collectionAddress],
+      functionArguments: [],
     };
 
     try {
@@ -41,10 +63,6 @@ export const MintButton = () => {
         throw new Error("Transaction was unexpectedly the wrong type");
       }
 
-      console.log(JSON.stringify(waitResponse));
-      console.log("yo");
-      console.log(JSON.stringify(waitResponse.changes), null, 2);
-
       // TODO: A function to get the objects created in a txn would be nice. I don't
       // believe such a function exists still, so I use the event that is emitted for
       // now.
@@ -54,7 +72,6 @@ export const MintButton = () => {
         if (change.type !== "write_resource") {
           continue;
         }
-        console.log(change);
         let c: WriteSetChangeWriteResource = change as any;
         if (c.data.type == "0x4::token::Token") {
           tokenAddress = c.address;
@@ -80,33 +97,35 @@ export const MintButton = () => {
   // TODO: Check that the user is allowlisted.
   const buttonEnabled = account !== null;
 
+  let buttonText;
+  let onClick = null;
+  if (!buttonEnabled) {
+    buttonText = "Connect Wallet";
+  } else if (isLoading) {
+    buttonText = "Loading...";
+  } else if (data && data.length > 0) {
+    buttonText = "View";
+    onClick = () => navigate(`/${data[0]}?network=${globalState.network}`);
+  } else if (tokenAddress) {
+    buttonText = "Reveal";
+    onClick = () => navigate(`/${tokenAddress}?network=${globalState.network}`);
+  } else {
+    buttonText = "Mint";
+    onClick = handleSubmit;
+  }
+
   return (
     <Box p={10}>
       <Flex alignContent="center">
-        <Button
-          paddingLeft={6}
-          paddingRight={6}
-          onClick={handleSubmit}
-          isDisabled={!buttonEnabled}
+        <Box
+          width="300px"
+          height="250px"
+          className="mountain-button"
+          onClick={onClick !== null ? onClick : undefined}
         >
-          Mint
-        </Button>
-      </Flex>
-      {tokenAddress && (
-        <Box>
-          <Text>
-            {"Token created at "}
-            <ChakraLink
-              color="lightblue"
-              as={ReactRouterLink}
-              to={`/${tokenAddress}?network=${globalState.network}`}
-            >
-              {tokenAddress}
-            </ChakraLink>
-            {"."}
-          </Text>
+          <span>{buttonText}</span>
         </Box>
-      )}
+      </Flex>
     </Box>
   );
 };

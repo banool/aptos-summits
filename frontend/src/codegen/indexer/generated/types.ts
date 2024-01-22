@@ -4796,6 +4796,205 @@ export type delegated_staking_activities_variance_order_by = {
   transaction_version: InputMaybe<order_by>;
 };
 
+/** columns and relationships of "delegated_staking_pool_balances" */
+export type delegated_staking_pool_balances = {
+  __typename?: "delegated_staking_pool_balances";
+  active_table_handle: Scalars["String"];
+  inactive_table_handle: Scalars["String"];
+  operator_commission_percentage: Scalars["numeric"];
+  staking_pool_address: Scalars["String"];
+  total_coins: Scalars["numeric"];
+  total_shares: Scalars["numeric"];
+  transaction_version: Scalars["bigint"];
+};
+
+/** aggregated selection of "delegated_staking_pool_balances" */
+export type delegated_staking_pool_balances_aggregate = {
+  __typename?: "delegated_staking_pool_balances_aggregate";
+  aggregate: Maybe<delegated_staking_pool_balances_aggregate_fields>;
+  nodes: Array<delegated_staking_pool_balances>;
+};
+
+/** aggregate fields of "delegated_staking_pool_balances" */
+export type delegated_staking_pool_balances_aggregate_fields = {
+  __typename?: "delegated_staking_pool_balances_aggregate_fields";
+  avg: Maybe<delegated_staking_pool_balances_avg_fields>;
+  count: Scalars["Int"];
+  max: Maybe<delegated_staking_pool_balances_max_fields>;
+  min: Maybe<delegated_staking_pool_balances_min_fields>;
+  stddev: Maybe<delegated_staking_pool_balances_stddev_fields>;
+  stddev_pop: Maybe<delegated_staking_pool_balances_stddev_pop_fields>;
+  stddev_samp: Maybe<delegated_staking_pool_balances_stddev_samp_fields>;
+  sum: Maybe<delegated_staking_pool_balances_sum_fields>;
+  var_pop: Maybe<delegated_staking_pool_balances_var_pop_fields>;
+  var_samp: Maybe<delegated_staking_pool_balances_var_samp_fields>;
+  variance: Maybe<delegated_staking_pool_balances_variance_fields>;
+};
+
+/** aggregate fields of "delegated_staking_pool_balances" */
+export type delegated_staking_pool_balances_aggregate_fieldscountArgs = {
+  columns: InputMaybe<Array<delegated_staking_pool_balances_select_column>>;
+  distinct: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** aggregate avg on columns */
+export type delegated_staking_pool_balances_avg_fields = {
+  __typename?: "delegated_staking_pool_balances_avg_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
+/** Boolean expression to filter rows from the table "delegated_staking_pool_balances". All fields are combined with a logical 'AND'. */
+export type delegated_staking_pool_balances_bool_exp = {
+  _and: InputMaybe<Array<delegated_staking_pool_balances_bool_exp>>;
+  _not: InputMaybe<delegated_staking_pool_balances_bool_exp>;
+  _or: InputMaybe<Array<delegated_staking_pool_balances_bool_exp>>;
+  active_table_handle: InputMaybe<String_comparison_exp>;
+  inactive_table_handle: InputMaybe<String_comparison_exp>;
+  operator_commission_percentage: InputMaybe<numeric_comparison_exp>;
+  staking_pool_address: InputMaybe<String_comparison_exp>;
+  total_coins: InputMaybe<numeric_comparison_exp>;
+  total_shares: InputMaybe<numeric_comparison_exp>;
+  transaction_version: InputMaybe<bigint_comparison_exp>;
+};
+
+/** aggregate max on columns */
+export type delegated_staking_pool_balances_max_fields = {
+  __typename?: "delegated_staking_pool_balances_max_fields";
+  active_table_handle: Maybe<Scalars["String"]>;
+  inactive_table_handle: Maybe<Scalars["String"]>;
+  operator_commission_percentage: Maybe<Scalars["numeric"]>;
+  staking_pool_address: Maybe<Scalars["String"]>;
+  total_coins: Maybe<Scalars["numeric"]>;
+  total_shares: Maybe<Scalars["numeric"]>;
+  transaction_version: Maybe<Scalars["bigint"]>;
+};
+
+/** aggregate min on columns */
+export type delegated_staking_pool_balances_min_fields = {
+  __typename?: "delegated_staking_pool_balances_min_fields";
+  active_table_handle: Maybe<Scalars["String"]>;
+  inactive_table_handle: Maybe<Scalars["String"]>;
+  operator_commission_percentage: Maybe<Scalars["numeric"]>;
+  staking_pool_address: Maybe<Scalars["String"]>;
+  total_coins: Maybe<Scalars["numeric"]>;
+  total_shares: Maybe<Scalars["numeric"]>;
+  transaction_version: Maybe<Scalars["bigint"]>;
+};
+
+/** Ordering options when selecting data from "delegated_staking_pool_balances". */
+export type delegated_staking_pool_balances_order_by = {
+  active_table_handle: InputMaybe<order_by>;
+  inactive_table_handle: InputMaybe<order_by>;
+  operator_commission_percentage: InputMaybe<order_by>;
+  staking_pool_address: InputMaybe<order_by>;
+  total_coins: InputMaybe<order_by>;
+  total_shares: InputMaybe<order_by>;
+  transaction_version: InputMaybe<order_by>;
+};
+
+/** select columns of table "delegated_staking_pool_balances" */
+export enum delegated_staking_pool_balances_select_column {
+  /** column name */
+  active_table_handle = "active_table_handle",
+  /** column name */
+  inactive_table_handle = "inactive_table_handle",
+  /** column name */
+  operator_commission_percentage = "operator_commission_percentage",
+  /** column name */
+  staking_pool_address = "staking_pool_address",
+  /** column name */
+  total_coins = "total_coins",
+  /** column name */
+  total_shares = "total_shares",
+  /** column name */
+  transaction_version = "transaction_version",
+}
+
+/** aggregate stddev on columns */
+export type delegated_staking_pool_balances_stddev_fields = {
+  __typename?: "delegated_staking_pool_balances_stddev_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type delegated_staking_pool_balances_stddev_pop_fields = {
+  __typename?: "delegated_staking_pool_balances_stddev_pop_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type delegated_staking_pool_balances_stddev_samp_fields = {
+  __typename?: "delegated_staking_pool_balances_stddev_samp_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
+/** Streaming cursor of the table "delegated_staking_pool_balances" */
+export type delegated_staking_pool_balances_stream_cursor_input = {
+  /** Stream column input with initial value */
+  initial_value: delegated_staking_pool_balances_stream_cursor_value_input;
+  /** cursor ordering */
+  ordering: InputMaybe<cursor_ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type delegated_staking_pool_balances_stream_cursor_value_input = {
+  active_table_handle: InputMaybe<Scalars["String"]>;
+  inactive_table_handle: InputMaybe<Scalars["String"]>;
+  operator_commission_percentage: InputMaybe<Scalars["numeric"]>;
+  staking_pool_address: InputMaybe<Scalars["String"]>;
+  total_coins: InputMaybe<Scalars["numeric"]>;
+  total_shares: InputMaybe<Scalars["numeric"]>;
+  transaction_version: InputMaybe<Scalars["bigint"]>;
+};
+
+/** aggregate sum on columns */
+export type delegated_staking_pool_balances_sum_fields = {
+  __typename?: "delegated_staking_pool_balances_sum_fields";
+  operator_commission_percentage: Maybe<Scalars["numeric"]>;
+  total_coins: Maybe<Scalars["numeric"]>;
+  total_shares: Maybe<Scalars["numeric"]>;
+  transaction_version: Maybe<Scalars["bigint"]>;
+};
+
+/** aggregate var_pop on columns */
+export type delegated_staking_pool_balances_var_pop_fields = {
+  __typename?: "delegated_staking_pool_balances_var_pop_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate var_samp on columns */
+export type delegated_staking_pool_balances_var_samp_fields = {
+  __typename?: "delegated_staking_pool_balances_var_samp_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
+/** aggregate variance on columns */
+export type delegated_staking_pool_balances_variance_fields = {
+  __typename?: "delegated_staking_pool_balances_variance_fields";
+  operator_commission_percentage: Maybe<Scalars["Float"]>;
+  total_coins: Maybe<Scalars["Float"]>;
+  total_shares: Maybe<Scalars["Float"]>;
+  transaction_version: Maybe<Scalars["Float"]>;
+};
+
 /** columns and relationships of "delegated_staking_pools" */
 export type delegated_staking_pools = {
   __typename?: "delegated_staking_pools";
@@ -5961,6 +6160,47 @@ export type nft_marketplace_v2_current_nft_marketplace_listings = {
   token_standard: Scalars["String"];
 };
 
+/** aggregated selection of "nft_marketplace_v2.current_nft_marketplace_listings" */
+export type nft_marketplace_v2_current_nft_marketplace_listings_aggregate = {
+  __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_aggregate";
+  aggregate: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_aggregate_fields>;
+  nodes: Array<nft_marketplace_v2_current_nft_marketplace_listings>;
+};
+
+/** aggregate fields of "nft_marketplace_v2.current_nft_marketplace_listings" */
+export type nft_marketplace_v2_current_nft_marketplace_listings_aggregate_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_aggregate_fields";
+    avg: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_avg_fields>;
+    count: Scalars["Int"];
+    max: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_max_fields>;
+    min: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_min_fields>;
+    stddev: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_stddev_fields>;
+    stddev_pop: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_stddev_pop_fields>;
+    stddev_samp: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_stddev_samp_fields>;
+    sum: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_sum_fields>;
+    var_pop: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_var_pop_fields>;
+    var_samp: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_var_samp_fields>;
+    variance: Maybe<nft_marketplace_v2_current_nft_marketplace_listings_variance_fields>;
+  };
+
+/** aggregate fields of "nft_marketplace_v2.current_nft_marketplace_listings" */
+export type nft_marketplace_v2_current_nft_marketplace_listings_aggregate_fieldscountArgs =
+  {
+    columns: InputMaybe<
+      Array<nft_marketplace_v2_current_nft_marketplace_listings_select_column>
+    >;
+    distinct: InputMaybe<Scalars["Boolean"]>;
+  };
+
+/** aggregate avg on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_avg_fields = {
+  __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_avg_fields";
+  last_transaction_version: Maybe<Scalars["Float"]>;
+  price: Maybe<Scalars["Float"]>;
+  token_amount: Maybe<Scalars["Float"]>;
+};
+
 /** Boolean expression to filter rows from the table "nft_marketplace_v2.current_nft_marketplace_listings". All fields are combined with a logical 'AND'. */
 export type nft_marketplace_v2_current_nft_marketplace_listings_bool_exp = {
   _and: InputMaybe<
@@ -5986,6 +6226,44 @@ export type nft_marketplace_v2_current_nft_marketplace_listings_bool_exp = {
   token_amount: InputMaybe<numeric_comparison_exp>;
   token_data_id: InputMaybe<String_comparison_exp>;
   token_standard: InputMaybe<String_comparison_exp>;
+};
+
+/** aggregate max on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_max_fields = {
+  __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_max_fields";
+  coin_type: Maybe<Scalars["String"]>;
+  collection_id: Maybe<Scalars["String"]>;
+  contract_address: Maybe<Scalars["String"]>;
+  entry_function_id_str: Maybe<Scalars["String"]>;
+  fee_schedule_id: Maybe<Scalars["String"]>;
+  last_transaction_timestamp: Maybe<Scalars["timestamptz"]>;
+  last_transaction_version: Maybe<Scalars["bigint"]>;
+  listing_id: Maybe<Scalars["String"]>;
+  marketplace: Maybe<Scalars["String"]>;
+  price: Maybe<Scalars["numeric"]>;
+  seller: Maybe<Scalars["String"]>;
+  token_amount: Maybe<Scalars["numeric"]>;
+  token_data_id: Maybe<Scalars["String"]>;
+  token_standard: Maybe<Scalars["String"]>;
+};
+
+/** aggregate min on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_min_fields = {
+  __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_min_fields";
+  coin_type: Maybe<Scalars["String"]>;
+  collection_id: Maybe<Scalars["String"]>;
+  contract_address: Maybe<Scalars["String"]>;
+  entry_function_id_str: Maybe<Scalars["String"]>;
+  fee_schedule_id: Maybe<Scalars["String"]>;
+  last_transaction_timestamp: Maybe<Scalars["timestamptz"]>;
+  last_transaction_version: Maybe<Scalars["bigint"]>;
+  listing_id: Maybe<Scalars["String"]>;
+  marketplace: Maybe<Scalars["String"]>;
+  price: Maybe<Scalars["numeric"]>;
+  seller: Maybe<Scalars["String"]>;
+  token_amount: Maybe<Scalars["numeric"]>;
+  token_data_id: Maybe<Scalars["String"]>;
+  token_standard: Maybe<Scalars["String"]>;
 };
 
 /** Ordering options when selecting data from "nft_marketplace_v2.current_nft_marketplace_listings". */
@@ -6042,6 +6320,33 @@ export enum nft_marketplace_v2_current_nft_marketplace_listings_select_column {
   token_standard = "token_standard",
 }
 
+/** aggregate stddev on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_stddev_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_stddev_fields";
+    last_transaction_version: Maybe<Scalars["Float"]>;
+    price: Maybe<Scalars["Float"]>;
+    token_amount: Maybe<Scalars["Float"]>;
+  };
+
+/** aggregate stddev_pop on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_stddev_pop_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_stddev_pop_fields";
+    last_transaction_version: Maybe<Scalars["Float"]>;
+    price: Maybe<Scalars["Float"]>;
+    token_amount: Maybe<Scalars["Float"]>;
+  };
+
+/** aggregate stddev_samp on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_stddev_samp_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_stddev_samp_fields";
+    last_transaction_version: Maybe<Scalars["Float"]>;
+    price: Maybe<Scalars["Float"]>;
+    token_amount: Maybe<Scalars["Float"]>;
+  };
+
 /** Streaming cursor of the table "nft_marketplace_v2_current_nft_marketplace_listings" */
 export type nft_marketplace_v2_current_nft_marketplace_listings_stream_cursor_input =
   {
@@ -6069,6 +6374,41 @@ export type nft_marketplace_v2_current_nft_marketplace_listings_stream_cursor_va
     token_amount: InputMaybe<Scalars["numeric"]>;
     token_data_id: InputMaybe<Scalars["String"]>;
     token_standard: InputMaybe<Scalars["String"]>;
+  };
+
+/** aggregate sum on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_sum_fields = {
+  __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_sum_fields";
+  last_transaction_version: Maybe<Scalars["bigint"]>;
+  price: Maybe<Scalars["numeric"]>;
+  token_amount: Maybe<Scalars["numeric"]>;
+};
+
+/** aggregate var_pop on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_var_pop_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_var_pop_fields";
+    last_transaction_version: Maybe<Scalars["Float"]>;
+    price: Maybe<Scalars["Float"]>;
+    token_amount: Maybe<Scalars["Float"]>;
+  };
+
+/** aggregate var_samp on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_var_samp_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_var_samp_fields";
+    last_transaction_version: Maybe<Scalars["Float"]>;
+    price: Maybe<Scalars["Float"]>;
+    token_amount: Maybe<Scalars["Float"]>;
+  };
+
+/** aggregate variance on columns */
+export type nft_marketplace_v2_current_nft_marketplace_listings_variance_fields =
+  {
+    __typename?: "nft_marketplace_v2_current_nft_marketplace_listings_variance_fields";
+    last_transaction_version: Maybe<Scalars["Float"]>;
+    price: Maybe<Scalars["Float"]>;
+    token_amount: Maybe<Scalars["Float"]>;
   };
 
 /** columns and relationships of "nft_marketplace_v2.current_nft_marketplace_token_offers" */
@@ -6540,6 +6880,7 @@ export enum order_by {
 export type processor_status = {
   __typename?: "processor_status";
   last_success_version: Scalars["bigint"];
+  last_transaction_timestamp: Maybe<Scalars["timestamp"]>;
   last_updated: Scalars["timestamp"];
   processor: Scalars["String"];
 };
@@ -6550,6 +6891,7 @@ export type processor_status_bool_exp = {
   _not: InputMaybe<processor_status_bool_exp>;
   _or: InputMaybe<Array<processor_status_bool_exp>>;
   last_success_version: InputMaybe<bigint_comparison_exp>;
+  last_transaction_timestamp: InputMaybe<timestamp_comparison_exp>;
   last_updated: InputMaybe<timestamp_comparison_exp>;
   processor: InputMaybe<String_comparison_exp>;
 };
@@ -6557,6 +6899,7 @@ export type processor_status_bool_exp = {
 /** Ordering options when selecting data from "processor_status". */
 export type processor_status_order_by = {
   last_success_version: InputMaybe<order_by>;
+  last_transaction_timestamp: InputMaybe<order_by>;
   last_updated: InputMaybe<order_by>;
   processor: InputMaybe<order_by>;
 };
@@ -6565,6 +6908,8 @@ export type processor_status_order_by = {
 export enum processor_status_select_column {
   /** column name */
   last_success_version = "last_success_version",
+  /** column name */
+  last_transaction_timestamp = "last_transaction_timestamp",
   /** column name */
   last_updated = "last_updated",
   /** column name */
@@ -6582,6 +6927,7 @@ export type processor_status_stream_cursor_input = {
 /** Initial value of the column from where the streaming should start */
 export type processor_status_stream_cursor_value_input = {
   last_success_version: InputMaybe<Scalars["bigint"]>;
+  last_transaction_timestamp: InputMaybe<Scalars["timestamp"]>;
   last_updated: InputMaybe<Scalars["timestamp"]>;
   processor: InputMaybe<Scalars["String"]>;
 };
@@ -6905,6 +7251,12 @@ export type query_root = {
   delegated_staking_activities: Array<delegated_staking_activities>;
   /** fetch data from the table: "delegated_staking_activities" using primary key columns */
   delegated_staking_activities_by_pk: Maybe<delegated_staking_activities>;
+  /** fetch data from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances: Array<delegated_staking_pool_balances>;
+  /** fetch aggregated fields from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances_aggregate: delegated_staking_pool_balances_aggregate;
+  /** fetch data from the table: "delegated_staking_pool_balances" using primary key columns */
+  delegated_staking_pool_balances_by_pk: Maybe<delegated_staking_pool_balances>;
   /** fetch data from the table: "delegated_staking_pools" */
   delegated_staking_pools: Array<delegated_staking_pools>;
   /** fetch data from the table: "delegated_staking_pools" using primary key columns */
@@ -6947,6 +7299,8 @@ export type query_root = {
   nft_marketplace_v2_current_nft_marketplace_collection_offers_by_pk: Maybe<nft_marketplace_v2_current_nft_marketplace_collection_offers>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
   nft_marketplace_v2_current_nft_marketplace_listings: Array<nft_marketplace_v2_current_nft_marketplace_listings>;
+  /** fetch aggregated fields from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
+  nft_marketplace_v2_current_nft_marketplace_listings_aggregate: nft_marketplace_v2_current_nft_marketplace_listings_aggregate;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_listings_by_pk: Maybe<nft_marketplace_v2_current_nft_marketplace_listings>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_token_offers" */
@@ -7459,6 +7813,27 @@ export type query_rootdelegated_staking_activities_by_pkArgs = {
   transaction_version: Scalars["bigint"];
 };
 
+export type query_rootdelegated_staking_pool_balancesArgs = {
+  distinct_on: InputMaybe<Array<delegated_staking_pool_balances_select_column>>;
+  limit: InputMaybe<Scalars["Int"]>;
+  offset: InputMaybe<Scalars["Int"]>;
+  order_by: InputMaybe<Array<delegated_staking_pool_balances_order_by>>;
+  where: InputMaybe<delegated_staking_pool_balances_bool_exp>;
+};
+
+export type query_rootdelegated_staking_pool_balances_aggregateArgs = {
+  distinct_on: InputMaybe<Array<delegated_staking_pool_balances_select_column>>;
+  limit: InputMaybe<Scalars["Int"]>;
+  offset: InputMaybe<Scalars["Int"]>;
+  order_by: InputMaybe<Array<delegated_staking_pool_balances_order_by>>;
+  where: InputMaybe<delegated_staking_pool_balances_bool_exp>;
+};
+
+export type query_rootdelegated_staking_pool_balances_by_pkArgs = {
+  staking_pool_address: Scalars["String"];
+  transaction_version: Scalars["bigint"];
+};
+
 export type query_rootdelegated_staking_poolsArgs = {
   distinct_on: InputMaybe<Array<delegated_staking_pools_select_column>>;
   limit: InputMaybe<Scalars["Int"]>;
@@ -7604,6 +7979,19 @@ export type query_rootnft_marketplace_v2_current_nft_marketplace_collection_offe
   };
 
 export type query_rootnft_marketplace_v2_current_nft_marketplace_listingsArgs =
+  {
+    distinct_on: InputMaybe<
+      Array<nft_marketplace_v2_current_nft_marketplace_listings_select_column>
+    >;
+    limit: InputMaybe<Scalars["Int"]>;
+    offset: InputMaybe<Scalars["Int"]>;
+    order_by: InputMaybe<
+      Array<nft_marketplace_v2_current_nft_marketplace_listings_order_by>
+    >;
+    where: InputMaybe<nft_marketplace_v2_current_nft_marketplace_listings_bool_exp>;
+  };
+
+export type query_rootnft_marketplace_v2_current_nft_marketplace_listings_aggregateArgs =
   {
     distinct_on: InputMaybe<
       Array<nft_marketplace_v2_current_nft_marketplace_listings_select_column>
@@ -8028,6 +8416,14 @@ export type subscription_root = {
   delegated_staking_activities_by_pk: Maybe<delegated_staking_activities>;
   /** fetch data from the table in a streaming manner: "delegated_staking_activities" */
   delegated_staking_activities_stream: Array<delegated_staking_activities>;
+  /** fetch data from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances: Array<delegated_staking_pool_balances>;
+  /** fetch aggregated fields from the table: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances_aggregate: delegated_staking_pool_balances_aggregate;
+  /** fetch data from the table: "delegated_staking_pool_balances" using primary key columns */
+  delegated_staking_pool_balances_by_pk: Maybe<delegated_staking_pool_balances>;
+  /** fetch data from the table in a streaming manner: "delegated_staking_pool_balances" */
+  delegated_staking_pool_balances_stream: Array<delegated_staking_pool_balances>;
   /** fetch data from the table: "delegated_staking_pools" */
   delegated_staking_pools: Array<delegated_staking_pools>;
   /** fetch data from the table: "delegated_staking_pools" using primary key columns */
@@ -8090,6 +8486,8 @@ export type subscription_root = {
   nft_marketplace_v2_current_nft_marketplace_collection_offers_stream: Array<nft_marketplace_v2_current_nft_marketplace_collection_offers>;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
   nft_marketplace_v2_current_nft_marketplace_listings: Array<nft_marketplace_v2_current_nft_marketplace_listings>;
+  /** fetch aggregated fields from the table: "nft_marketplace_v2.current_nft_marketplace_listings" */
+  nft_marketplace_v2_current_nft_marketplace_listings_aggregate: nft_marketplace_v2_current_nft_marketplace_listings_aggregate;
   /** fetch data from the table: "nft_marketplace_v2.current_nft_marketplace_listings" using primary key columns */
   nft_marketplace_v2_current_nft_marketplace_listings_by_pk: Maybe<nft_marketplace_v2_current_nft_marketplace_listings>;
   /** fetch data from the table in a streaming manner: "nft_marketplace_v2.current_nft_marketplace_listings" */
@@ -8824,6 +9222,35 @@ export type subscription_rootdelegated_staking_activities_streamArgs = {
   where: InputMaybe<delegated_staking_activities_bool_exp>;
 };
 
+export type subscription_rootdelegated_staking_pool_balancesArgs = {
+  distinct_on: InputMaybe<Array<delegated_staking_pool_balances_select_column>>;
+  limit: InputMaybe<Scalars["Int"]>;
+  offset: InputMaybe<Scalars["Int"]>;
+  order_by: InputMaybe<Array<delegated_staking_pool_balances_order_by>>;
+  where: InputMaybe<delegated_staking_pool_balances_bool_exp>;
+};
+
+export type subscription_rootdelegated_staking_pool_balances_aggregateArgs = {
+  distinct_on: InputMaybe<Array<delegated_staking_pool_balances_select_column>>;
+  limit: InputMaybe<Scalars["Int"]>;
+  offset: InputMaybe<Scalars["Int"]>;
+  order_by: InputMaybe<Array<delegated_staking_pool_balances_order_by>>;
+  where: InputMaybe<delegated_staking_pool_balances_bool_exp>;
+};
+
+export type subscription_rootdelegated_staking_pool_balances_by_pkArgs = {
+  staking_pool_address: Scalars["String"];
+  transaction_version: Scalars["bigint"];
+};
+
+export type subscription_rootdelegated_staking_pool_balances_streamArgs = {
+  batch_size: Scalars["Int"];
+  cursor: Array<
+    InputMaybe<delegated_staking_pool_balances_stream_cursor_input>
+  >;
+  where: InputMaybe<delegated_staking_pool_balances_bool_exp>;
+};
+
 export type subscription_rootdelegated_staking_poolsArgs = {
   distinct_on: InputMaybe<Array<delegated_staking_pools_select_column>>;
   limit: InputMaybe<Scalars["Int"]>;
@@ -9035,6 +9462,19 @@ export type subscription_rootnft_marketplace_v2_current_nft_marketplace_collecti
   };
 
 export type subscription_rootnft_marketplace_v2_current_nft_marketplace_listingsArgs =
+  {
+    distinct_on: InputMaybe<
+      Array<nft_marketplace_v2_current_nft_marketplace_listings_select_column>
+    >;
+    limit: InputMaybe<Scalars["Int"]>;
+    offset: InputMaybe<Scalars["Int"]>;
+    order_by: InputMaybe<
+      Array<nft_marketplace_v2_current_nft_marketplace_listings_order_by>
+    >;
+    where: InputMaybe<nft_marketplace_v2_current_nft_marketplace_listings_bool_exp>;
+  };
+
+export type subscription_rootnft_marketplace_v2_current_nft_marketplace_listings_aggregateArgs =
   {
     distinct_on: InputMaybe<
       Array<nft_marketplace_v2_current_nft_marketplace_listings_select_column>

@@ -8,11 +8,14 @@ import { MintButton } from "./MintButton";
 export const HomePage = () => {
   return (
     <Box p={10}>
-      <Flex alignContent="center">
+      <Flex justifyContent="center">
         <MintButton />
       </Flex>
-      <Divider m={10} />
-      <ViewForm />
     </Box>
   );
 };
+
+/*
+      <Divider m={10} />
+      <ViewForm />
+*/

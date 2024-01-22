@@ -48,6 +48,7 @@ export default function MainLayout({ children }: LayoutProps) {
       {getRandomFaceEmoji().repeat(3)}
     </Text>
   );
+  headerMiddle = null;
 
   let walletNetworkName: string | undefined = network?.name;
   if (network?.name.toLowerCase().startsWith("local")) {
@@ -113,7 +114,6 @@ export default function MainLayout({ children }: LayoutProps) {
             {headerMiddle}
           </Flex>
           <Flex justifyContent="flex-end" alignItems="center" gap="2" flex="1">
-            <ColorModeSwitcher />
             <NetworkSelect />
             <WalletSelector />
           </Flex>

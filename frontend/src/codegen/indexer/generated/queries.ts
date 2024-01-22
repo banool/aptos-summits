@@ -3,17 +3,14 @@ import * as Types from "./operations";
 import { GraphQLClient } from "graphql-request";
 import * as Dom from "graphql-request/dist/types.dom";
 
-export const GetGames = `
-    query GetGames($eventType: String, $createdSpec: jsonb, $invitedSpec: jsonb) {
-  created: events(
-    where: {indexed_type: {_eq: $eventType}, data: {_contains: $createdSpec}}
+export const GetTokens = `
+    query GetTokens($owner: String) {
+  current_token_ownerships_v2(
+    where: {current_token_data: {current_collection: {collection_name: {_eq: "Aptos Summits"}}}, owner_address: {_eq: $owner}}
   ) {
-    data
-  }
-  invited: events(
-    where: {indexed_type: {_eq: $eventType}, data: {_contains: $invitedSpec}}
-  ) {
-    data
+    current_token_data {
+      token_data_id
+    }
   }
 }
     `;
@@ -35,17 +32,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetGames(
-      variables?: Types.GetGamesQueryVariables,
+    GetTokens(
+      variables?: Types.GetTokensQueryVariables,
       requestHeaders?: Dom.RequestInit["headers"],
-    ): Promise<Types.GetGamesQuery> {
+    ): Promise<Types.GetTokensQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<Types.GetGamesQuery>(GetGames, variables, {
+          client.request<Types.GetTokensQuery>(GetTokens, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "GetGames",
+        "GetTokens",
         "query",
       );
     },
