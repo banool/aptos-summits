@@ -14,7 +14,6 @@ pnpm generate-from-indexer-queries
 ```
 
 ## Surf
-
 We use [Surf](https://github.com/ThalaLabs/surf). Surf requires the ABI of the Move module in the JSON format that comes from the node API. First, spin up the local test environment (run this from the root):
 ```
 python scripts/start_local_env.py -f
