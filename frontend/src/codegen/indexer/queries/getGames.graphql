@@ -1,0 +1,8 @@
+query GetGames($eventType: String, $createdSpec: jsonb, $invitedSpec: jsonb) {
+  created: events(where: {indexed_type: {_eq: $eventType}, data: {_contains: $createdSpec}}) {
+    data
+  }
+  invited: events(where: {indexed_type: {_eq: $eventType}, data: {_contains: $invitedSpec}}) {
+    data
+  }
+}
