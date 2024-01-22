@@ -1,0 +1,6 @@
+- Move contract for basic token + collection. Generates URL based on txn hash. Code inside collection if it fits.
+- Move contract with struct to store code. Exposes function to generate URL maybe.
+- Frontend
+  - Page to view summit
+  - Page to view many summits
+  - Page to mint

@@ -92,7 +92,7 @@ function getModuleAddressAndName(network: Network): {
     case Network.TESTNET:
       return {
         moduleAddress:
-          "0xa1e3f99a1f5a60d84f673bd991b064ea1159c3871cab112d5cac9179e3863c52",
+          "0xecf4655ee96b7280a7fc699d009299fd27d10273c050dbc582aa5844c57fd891",
       };
     case Network.MAINNET:
       // Doesn't work right now.
