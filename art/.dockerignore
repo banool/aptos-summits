@@ -1,0 +1,11 @@
+target
+api/target
+cli/target
+core/target
+web/target
+Dockerfile
+.dockerignore
+.git
+.gitignore
+out
+scripts

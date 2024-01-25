@@ -15,6 +15,10 @@ rust-version = { workspace = true }
 bevy = { workspace = true }
 bevy_prototype_lyon = { workspace = true }
 clap = { workspace = true }
+crossbeam-channel = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
 rand = { workspace = true }
 sha2 = { workspace = true }
 
+[features]
+api = ["crossbeam-channel", "image"]
