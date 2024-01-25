@@ -39,7 +39,7 @@ async fn main() {
     tokio::spawn(async move {
         let app = Router::new()
             .route("/", get(|| async { "Hello!" }))
-            .route("/media/:network/:address", get(handler))
+            .route("/:network/media/:address", get(handler))
             .layer(TraceLayer::new_for_http())
             .with_state(state);
 
