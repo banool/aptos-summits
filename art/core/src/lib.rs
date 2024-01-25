@@ -15,7 +15,8 @@ use clap::Parser;
 use crossbeam_channel::{Receiver, Sender};
 #[cfg(feature = "api")]
 use image::ImageOutputFormat;
-use rand::{rngs::SmallRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 use sha2::{Digest, Sha256};
 use std::{io::Cursor, ops::Range};
 
@@ -118,7 +119,7 @@ impl AppConfig {
     }
 }
 
-fn rand_color(rng: &mut SmallRng, r: Range<u8>, g: Range<u8>, b: Range<u8>) -> Color {
+fn rand_color(rng: &mut ChaCha8Rng, r: Range<u8>, g: Range<u8>, b: Range<u8>) -> Color {
     Color::rgb_u8(rng.gen_range(r), rng.gen_range(g), rng.gen_range(b))
 }
 
@@ -146,8 +147,10 @@ fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_ad
     let first_eight_bytes = &result[0..8];
     let seed = u64::from_be_bytes(first_eight_bytes.try_into().unwrap());
 
+    println!("token address: {} // seed {}", token_address, seed);
+
     // Build deterministic rng with seed.
-    let mut rng = SmallRng::seed_from_u64(seed);
+    let mut rng = ChaCha8Rng::seed_from_u64(seed);
 
     // Generate sky color.
     let sky_color = match rng.gen_range(1..4) {
@@ -232,7 +235,7 @@ struct MountainBundle {
 
 impl Mountain {
     pub fn new(
-        rng: &mut SmallRng,
+        rng: &mut ChaCha8Rng,
         width: u32,
         min_height: f64,
         max_height: f64,

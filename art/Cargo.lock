@@ -1337,6 +1337,7 @@ dependencies = [
  "crossbeam-channel",
  "image",
  "rand",
+ "rand_chacha",
  "sha2",
 ]
 
