@@ -19,12 +19,10 @@ use rand::{rngs::SmallRng, Rng, SeedableRng};
 use sha2::{Digest, Sha256};
 use std::{io::Cursor, ops::Range};
 
-const WIDTH: f32 = 1200.0;
-
 // TODO: Make the clap stuff conditional behind a feature.
 #[derive(Clone, Debug, Parser)]
 pub struct AppConfig {
-    #[clap(long, default_value_t = 1600.)]
+    #[clap(long, default_value_t = 700.)]
     pub width: f32,
 
     // TODO: If we can make the Rust SDK less massive, use AccountAddress instead.
@@ -84,6 +82,10 @@ impl AppConfig {
                 ..default()
             },
         };
+        app.add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(window),
+            ..default()
+        }));
 
         // From https://bevy-cheatbook.github.io/platforms/wasm/webpage.html#custom-canvas.
         match api_channels {
@@ -96,7 +98,6 @@ impl AppConfig {
                 // TODO: For now we can't do this headlessly, see this issue:
                 // https://github.com/bevyengine/bevy/issues/11493
                 // This means the API must be run in a place with windowing support.
-                app.add_plugins(DefaultPlugins.build() /*.disable::<WinitPlugin>()*/);
                 #[cfg(feature = "api")]
                 app.insert_resource(api_channels.image_channel);
                 #[cfg(feature = "api")]
@@ -104,12 +105,7 @@ impl AppConfig {
                 #[cfg(feature = "api")]
                 app.add_systems(Update, token_address_listener);
             },
-            None => {
-                app.add_plugins(DefaultPlugins.set(WindowPlugin {
-                    primary_window: Some(window),
-                    ..default()
-                }));
-            },
+            None => {},
         }
 
         app.insert_resource(AppSeed {
@@ -189,7 +185,14 @@ fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_ad
         );
         let min_height = -height / 3. / (num_mountains * (num_mountains - i)) as f64;
         let max_height = height * 0.72;
-        let mountain = Mountain::new(&mut rng, WIDTH as u32, min_height, max_height, color, z);
+        let mountain = Mountain::new(
+            &mut rng,
+            window.width() as u32,
+            min_height,
+            max_height,
+            color,
+            z,
+        );
         mountains.push(mountain);
         z += 1.;
     }
@@ -274,7 +277,7 @@ impl Mountain {
         ));
 
         for (i, y) in self.heights.iter().enumerate() {
-            let x = (i as i32 - WIDTH as i32) as f32;
+            let x = (i as i32 - resolution.width() as i32) as f32;
             let point = Vec2::new(x, *y);
             path_builder.line_to(point);
         }

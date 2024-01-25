@@ -18,7 +18,7 @@ struct MyState {
 #[tokio::main]
 async fn main() {
     let width: f32 = std::env::var("WIDTH")
-        .unwrap_or_else(|_| "1200.0".to_string())
+        .unwrap_or_else(|_| "700.0".to_string())
         .parse()
         .expect("WIDTH must be a float");
 
@@ -89,10 +89,13 @@ async fn handler(
 ) -> impl IntoResponse {
     // TODO: Single sempahore. Maybe not necessary.
 
+    // Trim extension.
+    let token_address = params.address.trim_end_matches(".png");
+
     // Send the token address to the app.
     state
         .token_address_sender
-        .send(params.address.clone())
+        .send(token_address.to_string())
         .unwrap();
 
     // This needs to actually take the data.
