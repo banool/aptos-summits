@@ -1,0 +1,25 @@
+[package]
+name = "api"
+version = "0.1.0"
+
+# Workspace inherited keys
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+
+[dependencies]
+# Internal
+core = { workspace = true, features = ["api"] }
+
+# External
+axum = { workspace = true }
+bevy = { workspace = true }
+crossbeam-channel = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tower-http = { workspace = true }

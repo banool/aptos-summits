@@ -17,4 +17,5 @@ wasm-opt -Oz -o /tmp/summits/small.wasm /tmp/summits/summits_bg.wasm
 # Move it in to place.
 rm -rf ../frontend/src/summits
 mv /tmp/summits/small.wasm /tmp/summits/summits_bg.wasm
-mv /tmp/summits ../frontend/src/summits
+cp -R /tmp/summits ../frontend/src/summits
+
