@@ -87,12 +87,7 @@ WantedBy=multi-user.target default.target
 
 Run and enable it:
 ```
-sudo systemctl daemon-reload && sudo systemctl enable processor.service && sudo systemctl start processor.service
-```
-
-See how it's doing like this:
-```
-sudo journalctl -u processor -f
+sudo systemctl daemon-reload && sudo systemctl enable processor.service && sudo systemctl start processor.service && sudo journalctl -u processor -f
 ```
 
 To reset the processor, do this:

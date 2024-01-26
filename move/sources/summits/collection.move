@@ -40,8 +40,8 @@ module addr::summits_collection {
         owner_extend_ref: ExtendRef,
     }
 
-    const COLLECTION_NAME: vector<u8> = b"Aptos Summits";
-    const COLLECTION_SEED: vector<u8> = b"AptosSummitsOwnerSeed";
+    const COLLECTION_NAME: vector<u8> = b"Aptos Passport: Summit One";
+    const COLLECTION_SEED: vector<u8> = b"AptosPassportSummitOneOwnerSeed";
 
     // NOTE: This has been changed to be specific to the summits collection. You can
     // only call this once courtesy of the hardcoded SEED. It is just simpler this way.
@@ -70,11 +70,12 @@ module addr::summits_collection {
 
         let constructor_ref = collection::create_fixed_collection(
             &collection_owner_signer,
-            string::utf8(b"unset"),
+            string::utf8(b"A stamp to memorialize the first ever Aptos Ecosystem Summit."),
             max_supply,
             name,
             option::none(),
-            string::utf8(b"unset"),
+            // We just use one of the tokens.
+            string::utf8(b"https://storage.googleapis.com/aptos-summits/images/0xc0881d4b59a54bbd5c0015a3c42ee10bc3ee824776b021a1636297f27552f0a4.png"),
         );
 
         let collection_mutator_ref = collection::generate_mutator_ref(&constructor_ref);

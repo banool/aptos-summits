@@ -18,7 +18,7 @@ struct MyState {
 #[tokio::main]
 async fn main() {
     let width: f32 = std::env::var("WIDTH")
-        .unwrap_or_else(|_| "1600.0".to_string())
+        .unwrap_or_else(|_| "2000.0".to_string())
         .parse()
         .expect("WIDTH must be a float");
 

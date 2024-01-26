@@ -164,7 +164,7 @@ def main():
             break
     print(f"[Local] Created collection at {collection_address}")
 
-    # Mint from the collection as player2.
+    # Mint a token to player 2..
     subprocess.run(
         [
             args.aptos_cli_path,
@@ -172,9 +172,11 @@ def main():
             "run",
             "--assume-yes",
             "--profile",
-            PLAYER2_PROFILE_NAME,
+            PROFILE_NAME,
             "--function-id",
-            f"{ACCOUNT_ADDRESS}::summits_token::mint",
+            f"{ACCOUNT_ADDRESS}::summits_token::mint_to",
+            "--args",
+            f"address:{PLAYER2_ADDRESS}",
         ],
         capture_output=True,
         check=True,

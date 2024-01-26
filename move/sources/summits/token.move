@@ -125,7 +125,7 @@ module addr::summits_token {
         } else {
             b"devnet"
         };
-        let uri = string::utf8(b"https://storage.cloud.google.com/aptos-summits/images/");
+        let uri = string::utf8(b"https://storage.googleapis.com/aptos-summits/images/");
         string::append(&mut uri, string::utf8(b"0x"));
         string::append(&mut uri, object_address_string);
         string::append(&mut uri, string::utf8(b".png"));

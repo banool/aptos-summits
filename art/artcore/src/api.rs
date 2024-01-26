@@ -95,7 +95,9 @@ fn capture_frame(
 
             let mut image = image.to_rgba8();
 
-            blend_images_multiply(&mut image, vec![&NFT_TEXTURE_RGBA8, &NFT_LOCKUP_RGBA8]);
+            // This requires that the output width be the same size as the overlays.
+            blend_images_multiply(&mut image, vec![&NFT_TEXTURE_RGBA8]);
+            blend_images_replace(&mut image, vec![&NFT_LOCKUP_RGBA8]);
 
             let mut buffer = Cursor::new(Vec::new());
             image
@@ -129,18 +131,19 @@ fn blend_images_multiply(base_image: &mut RgbaImage, images: Vec<&RgbaImage>) {
     }
 }
 
-fn blend_images_addition(base_image: &mut RgbaImage, images: Vec<&RgbaImage>) {
+// Replace the pixels with the overlay images based on transparency.
+fn blend_images_replace(base_image: &mut RgbaImage, images: Vec<&RgbaImage>) {
     for (x, y, pixel) in base_image.enumerate_pixels_mut() {
         for image in &images {
             let image_pixel = image.get_pixel(x, y);
-            // Addition blend mode formula: Base + Overlay
-            // Apply this formula to each channel (R, G, B)
-            for i in 0..3 {
-                let base_val = pixel.0[i] as u16;
-                let overlay_val = image_pixel.0[i] as u16;
-
-                // Perform the addition blend operation
-                pixel.0[i] = ((base_val + overlay_val) / 2) as u8;
+            // TODO TEMPORARY: Ignore all pixels darker than light gray.
+            if image_pixel.0[0] < 255 || image_pixel.0[1] < 255 || image_pixel.0[2] < 255 {
+                continue;
+            }
+            // If the overlay pixel is not transparent, replace the base pixel with the
+            // overlay pixel.
+            if image_pixel.0[3] != 0 {
+                *pixel = *image_pixel;
             }
         }
     }
