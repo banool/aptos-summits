@@ -308,6 +308,7 @@ dependencies = [
  "clap",
  "crossbeam-channel",
  "image",
+ "once_cell",
  "rand",
  "rand_chacha",
  "sha2 0.10.8",

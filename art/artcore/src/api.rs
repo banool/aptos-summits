@@ -4,7 +4,8 @@ use bevy::{
     window::PrimaryWindow,
 };
 use crossbeam_channel::{Receiver, Sender};
-use image::ImageOutputFormat;
+use image::{ImageOutputFormat, RgbaImage};
+use once_cell::sync::Lazy;
 use std::io::Cursor;
 
 pub struct ApiChannels {
@@ -55,6 +56,27 @@ pub fn token_address_listener(
     }
 }
 
+// Because we do this at the screenshot layer, it means the texture and logo are
+// only visible in screenshots. This is fine for now since we're not going to use
+// the site at the moment, just drop the tokens.
+
+const NFT_TEXTURE: &'static [u8] =
+    include_bytes!("../../assets/aptos-ecosummit-2024_nft_texture.png");
+const NFT_LOCKUP: &'static [u8] =
+    include_bytes!("../../assets/aptos-ecosummit-2024_nft_lockup.png");
+
+static NFT_TEXTURE_RGBA8: Lazy<RgbaImage> = Lazy::new(|| {
+    image::load_from_memory(NFT_TEXTURE)
+        .expect("Failed to load NFT texture")
+        .to_rgba8()
+});
+
+static NFT_LOCKUP_RGBA8: Lazy<RgbaImage> = Lazy::new(|| {
+    image::load_from_memory(NFT_LOCKUP)
+        .expect("Failed to load NFT lockup")
+        .to_rgba8()
+});
+
 fn capture_frame(
     channel: Res<ImageChannel>,
     main_window: Query<Entity, With<PrimaryWindow>>,
@@ -70,6 +92,11 @@ fn capture_frame(
             let image = image
                 .try_into_dynamic()
                 .expect("Failed to convert image to dynamic");
+
+            let mut image = image.to_rgba8();
+
+            blend_images_multiply(&mut image, vec![&NFT_TEXTURE_RGBA8, &NFT_LOCKUP_RGBA8]);
+
             let mut buffer = Cursor::new(Vec::new());
             image
                 .write_to(&mut buffer, ImageOutputFormat::Png)
@@ -83,4 +110,38 @@ fn capture_frame(
             }
         })
         .unwrap();
+}
+
+fn blend_images_multiply(base_image: &mut RgbaImage, images: Vec<&RgbaImage>) {
+    for (x, y, pixel) in base_image.enumerate_pixels_mut() {
+        for image in &images {
+            let image_pixel = image.get_pixel(x, y);
+            // Multiply blend mode formula: (Base * Overlay) / 255
+            // Apply this formula to each channel (R, G, B)
+            for i in 0..3 {
+                let base_val = pixel.0[i] as u16;
+                let overlay_val = image_pixel.0[i] as u16;
+
+                // Perform the multiply blend operation
+                pixel.0[i] = ((base_val * overlay_val) / 255) as u8;
+            }
+        }
+    }
+}
+
+fn blend_images_addition(base_image: &mut RgbaImage, images: Vec<&RgbaImage>) {
+    for (x, y, pixel) in base_image.enumerate_pixels_mut() {
+        for image in &images {
+            let image_pixel = image.get_pixel(x, y);
+            // Addition blend mode formula: Base + Overlay
+            // Apply this formula to each channel (R, G, B)
+            for i in 0..3 {
+                let base_val = pixel.0[i] as u16;
+                let overlay_val = image_pixel.0[i] as u16;
+
+                // Perform the addition blend operation
+                pixel.0[i] = ((base_val + overlay_val) / 2) as u8;
+            }
+        }
+    }
 }
