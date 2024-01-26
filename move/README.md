@@ -1,7 +1,12 @@
 # Aptos Summits: Move
 
-## Testnet
+## Mainnet
+To mint to someone, do this:
+```
+aptos move run --profile mainnet --function-id 0x`yq .profiles.mainnet.account < .aptos/config.yaml`::summits_token::mint_to --args address:0x123
+```
 
+## Testnet
 To publish to testnet at a new address:
 ```
 yes '' | aptos init --profile testnetpublish --assume-yes --network testnet && aptos move publish --profile testnetpublish --assume-yes --named-addresses addr=testnetpublish

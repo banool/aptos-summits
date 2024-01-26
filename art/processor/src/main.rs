@@ -9,10 +9,8 @@ mod storage;
 use crate::config::{Args, Config};
 use anyhow::{Context as AnyhowContext, Result};
 use bevyapp::{run_bevy_app, BevyChannels};
-use blob_store::LocalBlobStore;
 use clap::Parser;
 use run::run;
-use std::sync::Arc;
 use storage::PostgresStorage;
 use tokio::runtime::Builder;
 use tracing::{error, Level};
@@ -43,11 +41,12 @@ async fn main_inner() -> Result<()> {
         .await
         .context("Failed to initialize Postgres storage")?;
 
-    let blob_store = Arc::new(
-        LocalBlobStore::new(config.blob_store_config.clone())
-            .await
-            .context("Failed to initialize Postgres storage")?,
-    );
+    let blob_store = config
+        .blob_store_config
+        .clone()
+        .build()
+        .await
+        .context("Failed to build blob store")?;
 
     // Create channels for communication with the Bevy app.
     let (img_data_sender, img_data_receiver) = crossbeam_channel::bounded::<Vec<u8>>(1);

@@ -1,5 +1,5 @@
 use super::{health_server::HealthServerConfig, run::RunConfig, storage::PostgresStorageConfig};
-use crate::blob_store::LocalBlobStoreConfig;
+use crate::blob_store::BlobStoreConfig;
 use anyhow::Context as AnyhowContext;
 use clap::Parser;
 use figment::{
@@ -55,7 +55,7 @@ pub struct Config {
 
     pub storage_config: PostgresStorageConfig,
 
-    pub blob_store_config: LocalBlobStoreConfig,
+    pub blob_store_config: BlobStoreConfig,
 
     #[serde(default)]
     pub health_server_config: HealthServerConfig,

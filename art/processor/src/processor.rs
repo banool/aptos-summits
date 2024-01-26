@@ -100,16 +100,28 @@ impl SummitsProcessor {
     fn get_tokens_to_write(&self, transaction: &Transaction) -> Result<Option<String>> {
         // TODO: This check doesn't handle account addresses with leading zeroes.
         // Skip this transaction if this wasn't a create transaction.
-        let entry_function_id = EntryFunctionId {
-            module: Some(MoveModuleId {
-                address: self.config.contract_address.clone(),
-                name: MODULE_NAME.to_string(),
-            }),
-            name: "mint".to_string(),
-        };
+        let entry_function_ids = vec![
+            EntryFunctionId {
+                module: Some(MoveModuleId {
+                    address: self.config.contract_address.clone(),
+                    name: MODULE_NAME.to_string(),
+                }),
+                name: "mint".to_string(),
+            },
+            EntryFunctionId {
+                module: Some(MoveModuleId {
+                    address: self.config.contract_address.clone(),
+                    name: MODULE_NAME.to_string(),
+                }),
+                name: "mint_to".to_string(),
+            },
+        ];
 
         // Filter out non mints.
-        if !entry_function_id_matches(transaction, &entry_function_id) {
+        if entry_function_ids
+            .iter()
+            .all(|entry_function_id| !entry_function_id_matches(transaction, entry_function_id))
+        {
             return Ok(None);
         }
 

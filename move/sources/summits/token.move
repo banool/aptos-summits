@@ -3,12 +3,12 @@
 
 module addr::summits_token {
     use addr::summits_collection::{
-        is_owner as is_owner_of_collection,
+        is_creator as is_creator_of_collection,
         get_collection_name,
         get_collection_owner_signer,
     };
     use std::option;
-    use std::signer;
+    // use std::signer;
     use std::string::{Self, String};
     use aptos_framework::chain_id::{get as get_chain_id};
     use aptos_std::object::{Self, Object};
@@ -26,9 +26,24 @@ module addr::summits_token {
 
     /// Create a new canvas.
     public entry fun mint(
-        caller: &signer,
+        _caller: &signer,
     ) {
-        mint_(caller);
+        // For now we're making it that only the collection owner can mint tokens,
+        // see mint_to.
+        abort 1
+        // let caller_addr = signer::address_of(caller);
+        // mint_inner(caller_addr);
+    }
+
+    public entry fun mint_to(
+        caller: &signer,
+        mint_to: address,
+    ) {
+        // Confirm the caller is the collection owner.
+        assert_caller_is_collection_owner(caller);
+
+        // For now we're making it that only the collection owner can mint tokens.
+        mint_inner(mint_to);
     }
 
     // This function is separate from the top level mint function so we can use it
@@ -55,15 +70,13 @@ module addr::summits_token {
     //
     // TODO: I gave up on this extensible design where it takes an Object<Collection>
     // and just made this module hardcoded to support a single collection.
-    fun mint_(
-        caller: &signer,
+    fun mint_inner(
+        mint_to: address,
     ): Object<TokenRefs> {
-        let caller_addr = signer::address_of(caller);
-
         // TODO: Add on chain allowlist instead.
         // assert_caller_is_collection_owner(caller, collection);
 
-        let description = string::utf8(b"Summits created for the 2024 Aptos Ecosystem Summit. View your summit live here: https://summits.dport.me/.");
+        let description = string::utf8(b"Summits created for the 2024 Aptos Ecosystem Summit.");
         let name_prefix = string::utf8(b"Aptos Summit #");
         let name_suffix = string::utf8(b"");
 
@@ -112,12 +125,19 @@ module addr::summits_token {
         } else {
             b"devnet"
         };
+        let uri = string::utf8(b"https://storage.cloud.google.com/aptos-summits/images/");
+        string::append(&mut uri, string::utf8(b"0x"));
+        string::append(&mut uri, object_address_string);
+        string::append(&mut uri, string::utf8(b".png"));
+
+        /*
         let uri = string::utf8(b"https://api.summits.dport.me/");
         string::append(&mut uri, string::utf8(network_str));
         string::append(&mut uri, string::utf8(b"/media/0x"));
         string::append(&mut uri, object_address_string);
-        // TODO: This might end up being a GIF.
+        // TODO: This might end up being a GIF or something else.
         string::append(&mut uri, string::utf8(b".png"));
+        */
 
         // Set the real URI.
         token::set_uri(&token::generate_mutator_ref(&constructor_ref), uri);
@@ -125,7 +145,7 @@ module addr::summits_token {
         // Transfer ownership of the token to the minter.
         let transfer_ref = object::generate_transfer_ref(&constructor_ref);
         let linear_transfer_ref = object::generate_linear_transfer_ref(&transfer_ref);
-        object::transfer_with_ref(linear_transfer_ref, caller_addr);
+        object::transfer_with_ref(linear_transfer_ref, mint_to);
 
         obj
     }
@@ -135,7 +155,7 @@ module addr::summits_token {
     ///////////////////////////////////////////////////////////////////////////////////
 
     fun assert_caller_is_collection_owner(caller: &signer) {
-        assert!(is_owner_of_collection(caller), E_CALLER_NOT_COLLECTION_OWNER);
+        assert!(is_creator_of_collection(caller), E_CALLER_NOT_COLLECTION_OWNER);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -158,6 +178,8 @@ module addr::summits_token {
 
     #[test_only]
     use addr::summits_collection::create_for_test as create_collection_for_test;
+    #[test_only]
+    use std::signer;
     #[test_only]
     use std::timestamp;
     #[test_only]
@@ -221,7 +243,7 @@ module addr::summits_token {
     fun mint_token(
         caller: &signer,
     ): Object<TokenRefs> {
-        mint_(caller)
+        mint_inner(signer::address_of(caller))
     }
 
     // See that not just the creator can mint a token.

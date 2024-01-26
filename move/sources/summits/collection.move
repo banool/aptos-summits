@@ -101,7 +101,7 @@ module addr::summits_collection {
     /// Set the URI of the collection.
     public entry fun set_uri(caller: &signer, uri: String) acquires CollectionRefs {
         assert!(
-            is_owner(caller),
+            is_creator(caller),
             error::invalid_argument(E_COLLECTION_MUTATOR_FORBIDDEN),
         );
         let collection = get_collection();
@@ -112,7 +112,7 @@ module addr::summits_collection {
     /// Set the description of the collection.
     public entry fun set_description(caller: &signer, description: String) acquires CollectionRefs {
         assert!(
-            is_owner(caller),
+            is_creator(caller),
             error::invalid_argument(E_COLLECTION_MUTATOR_FORBIDDEN),
         );
         let collection = get_collection();
@@ -137,10 +137,18 @@ module addr::summits_collection {
         object::address_to_object<Collection>(collection_address)
     }
 
+    // This is not is_owner, it is based on where the contract is deployed, not who
+    // owns the collection.
+    public fun is_creator(caller: &signer): bool {
+        signer::address_of(caller) == PERMITTED_COLLECTION_CREATOR
+    }
+
+    /*
     public fun is_owner(caller: &signer): bool {
         let collection = get_collection();
         object::is_owner<Collection>(collection, signer::address_of(caller))
     }
+    */
 
     // So we can mint tokens in the collection.
     public(friend) fun get_collection_owner_signer(): signer acquires CollectionRefs {

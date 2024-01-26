@@ -31,6 +31,7 @@ bevy = { version = "0.12.1", features = ["bevy_core_pipeline", "bevy_render", "b
 bevy_prototype_lyon = "0.10.0"
 clap = { version = "4.4.18", features = ["derive"] }
 crossbeam-channel = "0.5.11"
+google-cloud-storage = { version = "0.13.1", features = ["auth", "rustls-tls"], default_features = false }
 image = { version = "0.24.8", features = ["png"], default-features = false }
 rand = { version = "0.8.5", features = ["small_rng"] }
 sha2 = "0.10.8"

@@ -55,7 +55,7 @@ impl ProgressStorageTrait for PostgresStorage {
 
         match last_processed_version_result {
             Some(row) => {
-                let version: i64 = row.try_get("version")?;
+                let version: i64 = row.try_get("last_success_version")?;
                 Ok(Some(version as u64))
             },
             None => Ok(None),
