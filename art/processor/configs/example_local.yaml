@@ -11,4 +11,4 @@ storage_config:
   connection_string: "postgres://postgres:@127.0.0.1:5433/local_testnet"
 blob_store_config:
   out_dir: /tmp/processor
-bevy_width: 4000
+bevy_width: 2000

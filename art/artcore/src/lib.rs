@@ -18,7 +18,7 @@ use std::ops::Range;
 #[derive(Clone, Debug, Parser)]
 pub struct AppConfig {
     // TODO: Make the generation of the mountains unaffected by the width.
-    #[clap(long, default_value_t = 4000.)]
+    #[clap(long, default_value_t = 2000.)]
     pub width: f32,
 
     // TODO: If we can make the Rust SDK less massive, use AccountAddress instead.

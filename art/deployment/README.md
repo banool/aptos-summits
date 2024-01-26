@@ -36,7 +36,7 @@ storage_config:
 blob_store_config:
   type: "Gcs"
   bucket_name: "aptos-summits"
-bevy_width: 4000
+bevy_width: 2000
 ```
 
 I store the private key for the module deployer in GCP Secrets Manager.

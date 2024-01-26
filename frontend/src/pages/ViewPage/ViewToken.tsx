@@ -13,10 +13,24 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
     // TODO: This is probably how we would we load the wasm from elsewhere.
     // const response = await fetch("http://127.0.0.1:8000/summits_bg.wasm");
     // const wasmArrayBuffer = await response.arrayBuffer();
-    const width = 1600;
+    const width = 2000;
     await init();
     setLoading(false);
     setLoaded(true);
+
+    // This doesn't work. Even if you do change the size of the canvas via the browser,
+    // it doesn't display correctly. There has to be a way to let a canvas render to
+    // the size it wants but constrain it with the parent.
+    /*
+    setInterval(() => {
+      const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement;
+      if (canvas) {
+        canvas.width = width;
+        canvas.height = width;
+      }
+    }, 100);
+    */
+
     // This blocks forever.
     run(width, tokenAddress, `#${CANVAS_ID}`);
   }
@@ -28,7 +42,8 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
     button = <Button onClick={runWasm}>Load</Button>;
   }
 
-  // TODO: Find a way to make the canvas only a certain size.
+  // The w and h for the box wrapping the canvas don't constrain the size of the
+  // canvas, it just creates a sort of "window" into the canvas.
   return (
     <Flex
       w="100%"
@@ -43,7 +58,7 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
           Refresh the page and try again if the image doesn't load in ~10 seconds.
         </Text>
       )}
-      <Box w={400} h={400} filter={loading ? "blur(4px)" : "none"}>
+      <Box w={700} h={700} filter={loading ? "blur(4px)" : "none"}>
         <canvas id={CANVAS_ID}></canvas>
       </Box>
     </Flex>
