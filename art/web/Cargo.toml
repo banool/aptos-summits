@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Internal
-core = { workspace = true }
+artcore = { workspace = true }
 
 # External
 web-sys = { workspace = true }

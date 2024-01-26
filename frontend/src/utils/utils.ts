@@ -129,8 +129,12 @@ const acceptableDenominators = range(63, 1);
 const maxDistanceToNumerator = 0.001;
 
 export function getShortAddress(addr: string): string {
-  console.log(`addrrrrrrrrrrr: ${JSON.stringify(addr)}`);
   return addr.slice(0, 5) + "..." + addr.slice(-3);
+}
+
+export function standardizeAddress(handle: string): string {
+  const cleanHandle = handle.startsWith("0x") ? handle.slice(2) : handle;
+  return `0x${cleanHandle.padStart(64, '0')}`;
 }
 
 export function formatAptAmount(aptAmount: number | bigint): string {

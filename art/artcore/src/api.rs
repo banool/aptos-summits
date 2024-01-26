@@ -1,0 +1,86 @@
+use super::{spawn_mountains, Mountain};
+use bevy::{
+    ecs::system::RunSystemOnce, prelude::*, render::view::screenshot::ScreenshotManager,
+    window::PrimaryWindow,
+};
+use crossbeam_channel::{Receiver, Sender};
+use image::ImageOutputFormat;
+use std::io::Cursor;
+
+pub struct ApiChannels {
+    pub image_channel: ImageChannel,
+    pub token_address_receiver: TokenAddressReceiver,
+}
+
+#[derive(Debug, Resource)]
+pub struct ImageChannel {
+    // Sender so we can send the image data back to the caller.
+    pub sender: Sender<Vec<u8>>,
+}
+
+#[derive(Debug, Resource)]
+pub struct TokenAddressReceiver {
+    // Receiver so we can modify the mountains.
+    pub receiver: Receiver<String>,
+}
+
+// This despawns the shapes drawn too.
+fn despawn_mountains(mut commands: Commands, mountains: Query<Entity, With<Mountain>>) {
+    for mountain in mountains.iter() {
+        commands.entity(mountain).despawn_recursive();
+    }
+}
+
+fn despawn_camera(mut commands: Commands, cameras: Query<Entity, With<Camera2d>>) {
+    for camera in cameras.iter() {
+        commands.entity(camera).despawn_recursive();
+    }
+}
+
+pub fn token_address_listener(
+    channel: Res<TokenAddressReceiver>,
+    mut commands: Commands,
+    window: Query<&Window>,
+) {
+    if let Ok(token_address) = channel.receiver.try_recv() {
+        eprintln!("New token address: {}", token_address);
+        commands.add(move |world: &mut World| {
+            world.run_system_once(despawn_mountains);
+            world.run_system_once(despawn_camera);
+        });
+        spawn_mountains(&mut commands, window, token_address);
+        commands.add(move |world: &mut World| {
+            world.run_system_once(capture_frame);
+        });
+    }
+}
+
+fn capture_frame(
+    channel: Res<ImageChannel>,
+    main_window: Query<Entity, With<PrimaryWindow>>,
+    mut screenshot_manager: ResMut<ScreenshotManager>,
+) {
+    let sender = channel.sender.clone();
+    if sender.is_full() {
+        // eprintln!("Sender is full, not capturing frame");
+        return;
+    }
+    screenshot_manager
+        .take_screenshot(main_window.single(), move |image| {
+            let image = image
+                .try_into_dynamic()
+                .expect("Failed to convert image to dynamic");
+            let mut buffer = Cursor::new(Vec::new());
+            image
+                .write_to(&mut buffer, ImageOutputFormat::Png)
+                .expect("Failed to write image as png");
+            let png_data: Vec<u8> = buffer.into_inner();
+
+            let result = sender.send(png_data);
+            match result {
+                Ok(_) => eprintln!("Sent image data"),
+                Err(e) => eprintln!("Failed to send image data {}", e),
+            }
+        })
+        .unwrap();
+}

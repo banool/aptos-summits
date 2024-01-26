@@ -12,7 +12,7 @@ rust-version = { workspace = true }
 
 [dependencies]
 # Internal
-core = { workspace = true, features = ["api"] }
+artcore = { workspace = true, features = ["api"] }
 
 # External
 axum = { workspace = true }

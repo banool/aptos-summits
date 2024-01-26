@@ -164,6 +164,25 @@ def main():
             break
     print(f"[Local] Created collection at {collection_address}")
 
+    # Mint from the collection as player2.
+    subprocess.run(
+        [
+            args.aptos_cli_path,
+            "move",
+            "run",
+            "--assume-yes",
+            "--profile",
+            PLAYER2_PROFILE_NAME,
+            "--function-id",
+            f"{ACCOUNT_ADDRESS}::summits_token::mint",
+        ],
+        capture_output=True,
+        check=True,
+        universal_newlines=True,
+        cwd="move/",
+    )
+    print(f"[Local] Minted token")
+
     # Sit here while the local testnet runs.
     print("[Local] Setup complete, local testnet is ready and running")
 

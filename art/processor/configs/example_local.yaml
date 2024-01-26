@@ -1,0 +1,14 @@
+processor_config:
+  stream_subscriber_config:
+    grpc_data_service_address: http://127.0.0.1:50051
+    auth_token: not_used
+  dispatcher_config: {}
+  common_storage_config:
+    initial_starting_version: 0
+  processor_config:
+    contract_address: "0x296102a3893d43e11de2aa142fbb126377120d7d71c246a2f95d5b4f3ba16b30"
+storage_config:
+  connection_string: "postgres://postgres:@127.0.0.1:5433/local_testnet"
+blob_store_config:
+  out_dir: /tmp/processor
+bevy_width: 4000

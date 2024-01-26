@@ -1,5 +1,5 @@
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import init, { run } from "../../summits/summits";
 
 const CANVAS_ID = "summitcanvas";
@@ -13,7 +13,7 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
     // TODO: This is probably how we would we load the wasm from elsewhere.
     // const response = await fetch("http://127.0.0.1:8000/summits_bg.wasm");
     // const wasmArrayBuffer = await response.arrayBuffer();
-    const width = 700;
+    const width = 1600;
     await init();
     setLoading(false);
     setLoaded(true);
@@ -28,6 +28,7 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
     button = <Button onClick={runWasm}>Load</Button>;
   }
 
+  // TODO: Find a way to make the canvas only a certain size.
   return (
     <Flex
       w="100%"
@@ -42,7 +43,7 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
           Refresh the page and try again if the image doesn't load in ~10 seconds.
         </Text>
       )}
-      <Box filter={loading ? "blur(4px)" : "none"}>
+      <Box w={400} h={400} filter={loading ? "blur(4px)" : "none"}>
         <canvas id={CANVAS_ID}></canvas>
       </Box>
     </Flex>

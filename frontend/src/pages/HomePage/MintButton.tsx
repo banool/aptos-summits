@@ -1,4 +1,4 @@
-import { Box, Text, Button, Flex, useToast } from "@chakra-ui/react";
+import { Box, Flex, useToast } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { getModuleIdentifier, useGlobalState } from "../../context/GlobalState";
 import {
@@ -6,10 +6,10 @@ import {
   WriteSetChangeWriteResource,
 } from "@aptos-labs/ts-sdk";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { Link as ReactRouterLink, useNavigate } from "react-router-dom";
-import { Link as ChakraLink } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 import "../../css/buttons.css";
 import { useTokens } from "../../api/useTokens";
+import { standardizeAddress } from "../../utils/utils";
 
 export const MintButton = () => {
   const { account, signAndSubmitTransaction } = useWallet();
@@ -82,7 +82,7 @@ export const MintButton = () => {
         throw new Error("Couldn't find token address from mint function");
       }
 
-      setTokenAddress(tokenAddress);
+      setTokenAddress(standardizeAddress(tokenAddress));
     } catch (error) {
       console.log(`Error minting token: ${JSON.stringify(error)}`);
       toast({

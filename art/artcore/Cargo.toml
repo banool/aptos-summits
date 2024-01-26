@@ -1,0 +1,25 @@
+[package]
+name = "artcore"
+version = "0.1.0"
+
+# Workspace inherited keys
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+publish = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+
+[dependencies]
+# External
+bevy = { workspace = true }
+bevy_prototype_lyon = { workspace = true }
+clap = { workspace = true }
+crossbeam-channel = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+rand = { workspace = true }
+rand_chacha = "0.3.1"
+sha2 = { workspace = true }
+
+[features]
+api = ["crossbeam-channel", "image"]

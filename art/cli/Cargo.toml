@@ -12,7 +12,7 @@ rust-version = { workspace = true }
 
 [dependencies]
 # Internal
-core = { workspace = true }
+artcore = { workspace = true }
 
 # External
 clap = { workspace = true }

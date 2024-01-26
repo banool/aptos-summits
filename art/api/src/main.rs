@@ -1,3 +1,4 @@
+use artcore::{ApiChannels, AppConfig, ImageChannel, TokenAddressReceiver};
 use axum::{
     extract::{Path, State},
     http::header,
@@ -5,7 +6,6 @@ use axum::{
     routing::get,
     Router,
 };
-use core::{ApiChannels, AppConfig, ImageChannel, TokenAddressReceiver};
 use serde::Deserialize;
 use tower_http::trace::TraceLayer;
 
@@ -18,7 +18,7 @@ struct MyState {
 #[tokio::main]
 async fn main() {
     let width: f32 = std::env::var("WIDTH")
-        .unwrap_or_else(|_| "700.0".to_string())
+        .unwrap_or_else(|_| "1600.0".to_string())
         .parse()
         .expect("WIDTH must be a float");
 
@@ -57,22 +57,17 @@ async fn main() {
         initial_token_address: "0x5".to_string(),
     };
 
-    let mut bevy_app = app_config.build(
-        None,
-        Some(ApiChannels {
-            image_channel: ImageChannel {
-                sender: img_data_sender,
-                // receiver: img_data_receiver,
-            },
-            token_address_receiver: TokenAddressReceiver {
-                receiver: token_address_receiver,
-            },
-        }),
-    );
+    let mut bevy_app = app_config.build_for_api(None, ApiChannels {
+        image_channel: ImageChannel {
+            sender: img_data_sender,
+            // receiver: img_data_receiver,
+        },
+        token_address_receiver: TokenAddressReceiver {
+            receiver: token_address_receiver,
+        },
+    });
 
-    // Run the app. This call should end because we have a system that ends the app
-    // after the image is captured and we use return_from_run. This will run in
-    // the background.
+    // Run the app. This blocks because we don't use return_from_run.
     bevy_app.run();
 }
 
@@ -98,7 +93,7 @@ async fn handler(
         .send(token_address.to_string())
         .unwrap();
 
-    // This needs to actually take the data.
+    // Pull the image data the app eventually writes.
     let image = state.img_data_receiver.recv().unwrap();
 
     let headers = AppendHeaders([(header::CONTENT_TYPE, "image/png")]);
