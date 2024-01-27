@@ -134,7 +134,7 @@ export function getShortAddress(addr: string): string {
 
 export function standardizeAddress(handle: string): string {
   const cleanHandle = handle.startsWith("0x") ? handle.slice(2) : handle;
-  return `0x${cleanHandle.padStart(64, '0')}`;
+  return `0x${cleanHandle.padStart(64, "0")}`;
 }
 
 export function formatAptAmount(aptAmount: number | bigint): string {

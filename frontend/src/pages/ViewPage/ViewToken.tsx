@@ -10,10 +10,11 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
 
   async function runWasm() {
     setLoading(true);
+
     // TODO: This is probably how we would we load the wasm from elsewhere.
     // const response = await fetch("http://127.0.0.1:8000/summits_bg.wasm");
     // const wasmArrayBuffer = await response.arrayBuffer();
-    const width = 2000;
+
     await init();
     setLoading(false);
     setLoaded(true);
@@ -30,6 +31,12 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
       }
     }, 100);
     */
+
+    // If this width doesn't match the width used elsewhere, the generation will run
+    // differently due to how the values for the mountains are generated (based on
+    // width rather than just generating heaps of points and then throwing some away
+    // if the actual width is smaller).
+    const width = 700;
 
     // This blocks forever.
     run(width, tokenAddress, `#${CANVAS_ID}`);
@@ -55,10 +62,11 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
       {button}
       {!loaded && (
         <Text p={5}>
-          Refresh the page and try again if the image doesn't load in ~10 seconds.
+          Refresh the page and try again if the image doesn't load in ~10
+          seconds.
         </Text>
       )}
-      <Box w={700} h={700} filter={loading ? "blur(4px)" : "none"}>
+      <Box filter={loading ? "blur(4px)" : "none"}>
         <canvas id={CANVAS_ID}></canvas>
       </Box>
     </Flex>
