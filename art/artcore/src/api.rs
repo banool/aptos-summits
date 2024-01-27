@@ -136,14 +136,14 @@ fn blend_images_replace(base_image: &mut RgbaImage, images: Vec<&RgbaImage>) {
     for (x, y, pixel) in base_image.enumerate_pixels_mut() {
         for image in &images {
             let image_pixel = image.get_pixel(x, y);
-            // TODO TEMPORARY: Ignore all pixels darker than light gray.
-            if image_pixel.0[0] < 255 || image_pixel.0[1] < 255 || image_pixel.0[2] < 255 {
-                continue;
-            }
-            // If the overlay pixel is not transparent, replace the base pixel with the
-            // overlay pixel.
-            if image_pixel.0[3] != 0 {
-                *pixel = *image_pixel;
+            // Overlay the pixels based on the alpha of image_pixel.
+            for i in 0..3 {
+                let base_val = pixel.0[i] as u16;
+                let overlay_val = image_pixel.0[i] as u16;
+                let alpha = image_pixel.0[3] as u16;
+
+                // Perform the multiply blend operation
+                pixel.0[i] = ((base_val * (255 - alpha) + overlay_val * alpha) / 255) as u8;
             }
         }
     }

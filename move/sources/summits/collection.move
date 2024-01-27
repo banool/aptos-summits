@@ -70,7 +70,7 @@ module addr::summits_collection {
 
         let constructor_ref = collection::create_fixed_collection(
             &collection_owner_signer,
-            string::utf8(b"A stamp to memorialize the first ever Aptos Ecosystem Summit."),
+            string::utf8(b"Stamps to memorialize the first ever Aptos Ecosystem Summit."),
             max_supply,
             name,
             option::none(),

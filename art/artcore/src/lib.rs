@@ -165,6 +165,19 @@ fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_ad
     }
 }
 
+// Move mountains slowly horizontally to the right, with mountains closer to the camera moving faster.
+/*
+fn move_mountains(time: Res<Time>, mut mountains: Query<&mut Mountain>) {
+    for mut mountain in mountains.iter_mut() {
+        let speed = 0.1 / mountain.z;
+        // Delete elements from the left of the heights so the mountains "scroll".
+        mountain.heights.drain(0..(speed * time.delta_seconds()) as usize);
+        // Redraw.
+        mountain.spawn();
+    }
+}
+*/
+
 #[derive(Component)]
 struct Mountain {
     heights: Vec<f32>,

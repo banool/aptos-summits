@@ -76,8 +76,8 @@ module addr::summits_token {
         // TODO: Add on chain allowlist instead.
         // assert_caller_is_collection_owner(caller, collection);
 
-        let description = string::utf8(b"Summits created for the 2024 Aptos Ecosystem Summit.");
-        let name_prefix = string::utf8(b"Aptos Summit #");
+        let description = string::utf8(b"A stamp to memorialize the first ever Aptos Ecosystem Summit.");
+        let name_prefix = string::utf8(b"APTOS PASSPORT: Ecosystem Summit One #");
         let name_suffix = string::utf8(b"");
 
         // Get the signer of the owner of the collection.
