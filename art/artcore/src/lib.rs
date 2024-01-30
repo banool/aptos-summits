@@ -67,6 +67,7 @@ impl AppConfig {
         })
         .add_plugins(ShapePlugin)
         .add_systems(Startup, initial_spawn)
+        .add_systems(Update, handle_keys)
         .add_systems(Update, update_mountains);
 
         app
@@ -130,6 +131,7 @@ fn initial_spawn(mut commands: Commands, app_seed: Res<AppSeed>) {
     commands.add(move |world: &mut World| {
         world.run_system_once(spawn_mountains);
     });
+    commands.insert_resource(PauseState { paused: false });
 }
 
 // TODO: Move this to to an update system and scroll each mountain layer.
@@ -203,12 +205,29 @@ fn spawn_mountains(
     }
 }
 
+#[derive(Resource)]
+struct PauseState {
+    paused: bool,
+}
+
+fn handle_keys(keyboard_input: Res<Input<KeyCode>>, mut pause_state: ResMut<PauseState>) {
+    if keyboard_input.just_pressed(KeyCode::P) {
+        pause_state.paused = !pause_state.paused;
+        println!("Paused: {}", pause_state.paused);
+    }
+}
+
 fn update_mountains(
     time: Res<Time>,
     window: Query<&Window>,
     mut randomness: ResMut<Randomness>,
     mut query: Query<(&mut Mountain, &mut Path)>,
+    pause_state: Res<PauseState>,
 ) {
+    if pause_state.paused {
+        return;
+    }
+
     let window = window.single();
     let resolution = &window.resolution;
 
@@ -317,10 +336,7 @@ impl Mountain {
         // Start in the bottom left corner with the sub_pixel_offset.
         let start_x = -resolution.width() / 2. - self.sub_pixel_offset;
 
-        path_builder.move_to(Vec2::new(
-            start_x,
-            -resolution.height() / 2.,
-        ));
+        path_builder.move_to(Vec2::new(start_x, -resolution.height() / 2.));
 
         for (i, y) in self.heights.iter().enumerate() {
             let x = start_x + i as f32;
@@ -367,7 +383,8 @@ impl Mountain {
 
         // Add points to the right.
         for _ in 0..whole_pixels {
-            self.heights.push(self.height_generator.next(randomness).unwrap());
+            self.heights
+                .push(self.height_generator.next(randomness).unwrap());
         }
     }
 

@@ -38,10 +38,7 @@ fn despawn_camera(mut commands: Commands, cameras: Query<Entity, With<Camera2d>>
     }
 }
 
-pub fn token_address_listener(
-    channel: Res<TokenAddressReceiver>,
-    mut commands: Commands,
-) {
+pub fn token_address_listener(channel: Res<TokenAddressReceiver>, mut commands: Commands) {
     if let Ok(token_address) = channel.receiver.try_recv() {
         eprintln!("New token address: {}", token_address);
         commands.insert_resource(Randomness::from_token_address(&token_address));
