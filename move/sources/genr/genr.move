@@ -34,7 +34,10 @@ module addr::genr {
     }
 
     /// Create a CodeHolder at an object.
-    public fun create_empty_holder(constructor_ref: &ConstructorRef, allow_updates: bool) {
+    public fun create_empty_holder(
+        constructor_ref: &ConstructorRef,
+        allow_updates: bool
+    ) {
         let object_signer = object::generate_signer(constructor_ref);
         move_to(
             &object_signer,
@@ -46,13 +49,19 @@ module addr::genr {
         );
     }
 
-    public entry fun update_code_holder(caller: &signer, holder: Object<CodeHolder>, code: vector<u8>, format: u8) acquires CodeHolder {
-        assert!(
+    public entry fun update_code_holder(
+        caller: &signer,
+        holder: Object<CodeHolder>,
+        code: vector<u8>,
+        format: u8
+    )
+        acquires CodeHolder {
+        assert !(
             object::is_owner<CodeHolder>(holder, signer::address_of(caller)),
             error::invalid_state(E_NOT_COLLECTION_OWNER),
         );
         let holder_ = borrow_global_mut<CodeHolder>(object::object_address(&holder));
-        assert!(
+        assert !(
             holder_.allow_updates && vector::is_empty(&holder_.code),
             error::invalid_state(E_UPDATES_NOT_ALLOWED),
         );
@@ -68,24 +77,35 @@ module addr::genr {
     }
 
     /// Create a CodeHolder at an object.
-    public fun create_code_reference(constructor_ref: &ConstructorRef, url: String, allow_updates: bool) {
+    public fun create_code_reference(
+        constructor_ref: &ConstructorRef,
+        url: String,
+        allow_updates: bool
+    ) {
         let object_signer = object::generate_signer(constructor_ref);
         move_to(
             &object_signer,
-            CodeReference {
-                url,
-                allow_updates,
-            },
+            CodeReference {url, allow_updates,},
         );
     }
 
-    public entry fun update_code_reference(caller: &signer, reference: Object<CodeReference>, url: String) acquires CodeReference {
-        assert!(
-            object::is_owner<CodeReference>(reference, signer::address_of(caller)),
+    public entry fun update_code_reference(
+        caller: &signer,
+        reference: Object<CodeReference>,
+        url: String
+    )
+        acquires CodeReference {
+        assert !(
+            object::is_owner<CodeReference>(
+                reference,
+                signer::address_of(caller)
+            ),
             error::invalid_state(E_NOT_COLLECTION_OWNER),
         );
-        let reference_ = borrow_global_mut<CodeReference>(object::object_address(&reference));
-        assert!(
+        let reference_ = borrow_global_mut<CodeReference>(
+            object::object_address(&reference)
+        );
+        assert !(
             reference_.allow_updates,
             error::invalid_state(E_UPDATES_NOT_ALLOWED),
         );

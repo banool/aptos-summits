@@ -56,7 +56,7 @@ module addr::summits_collection {
     // discussing it.
     public entry fun create(publisher: &signer) {
         // For now only allow the module publisher to create collections.
-        assert!(
+        assert !(
             signer::address_of(publisher) == PERMITTED_COLLECTION_CREATOR,
             error::invalid_argument(E_COLLECTION_CREATOR_FORBIDDEN),
         );
@@ -76,12 +76,16 @@ module addr::summits_collection {
         let constructor_ref = collection::create_fixed_collection(
             &collection_owner_signer,
             // \xF0\x9F\x8C\x90 is the globe emoji.
-            string::utf8(b"This NFT collection commemorates the first ever Aptos Ecosystem Summit from January 22-26, 2024. This week brought together 40+ premier Aptos projects, partners, and supporters to celebrate Aptos innovation across the ecosystem. These NFTs are soulbound to honor the growing community of builders who have gathered for Aptos in real life. The artwork is algorithmically generated, so every piece of art is completely unique. As part of the APTOS PASSPORT, these NFTs will serve as an access point for deeper connection with the Aptos community. Thank you to everyone who joined the Aptos Foundation for the 2024 Aptos Ecosystem Summit in Palo Alto, CA. Make Every M\xF0\x9F\x8C\x90ve Count."),
+            string::utf8(
+                b"This NFT collection commemorates the first ever Aptos Ecosystem Summit from January 22-26, 2024. This week brought together 40+ premier Aptos projects, partners, and supporters to celebrate Aptos innovation across the ecosystem. These NFTs are soulbound to honor the growing community of builders who have gathered for Aptos in real life. The artwork is algorithmically generated, so every piece of art is completely unique. As part of the APTOS PASSPORT, these NFTs will serve as an access point for deeper connection with the Aptos community. Thank you to everyone who joined the Aptos Foundation for the 2024 Aptos Ecosystem Summit in Palo Alto, CA. Make Every M\xF0\x9F\x8C\x90ve Count."
+            ),
             max_supply,
             name,
             option::none(),
             // We just use one of the tokens.
-            string::utf8(b"https://storage.googleapis.com/aptos-summits/images/0x8f65e467a77e2f77c23c6689c8ff6c1d97f5188e4a6b24c7d0ea369400654395.png"),
+            string::utf8(
+                b"https://storage.googleapis.com/aptos-summits/images/0x8f65e467a77e2f77c23c6689c8ff6c1d97f5188e4a6b24c7d0ea369400654395.png"
+            ),
         );
 
         let collection_mutator_ref = collection::generate_mutator_ref(&constructor_ref);
@@ -102,9 +106,7 @@ module addr::summits_collection {
         // Store the map of who owns a token in the collection.
         move_to(
             &object_signer,
-            TokenOwners {
-                owners: smart_table::new(),
-            },
+            TokenOwners {owners: smart_table::new(),},
         );
 
     }
@@ -115,31 +117,43 @@ module addr::summits_collection {
     }
 
     /// Set the URI of the collection.
-    public entry fun set_uri(caller: &signer, uri: String) acquires CollectionRefs {
-        assert!(
+    public entry fun set_uri(caller: &signer, uri: String)
+        acquires CollectionRefs {
+        assert !(
             is_creator(caller),
             error::invalid_argument(E_COLLECTION_MUTATOR_FORBIDDEN),
         );
         let collection = get_collection();
-        let collection_refs = borrow_global<CollectionRefs>(object::object_address(&collection));
-        collection::set_uri(&collection_refs.collection_mutator_ref, uri);
+        let collection_refs = borrow_global<CollectionRefs>(
+            object::object_address(&collection)
+        );
+        collection::set_uri(
+            &collection_refs.collection_mutator_ref,
+            uri
+        );
     }
 
     /// Set the description of the collection.
-    public entry fun set_description(caller: &signer, description: String) acquires CollectionRefs {
-        assert!(
+    public entry fun set_description(caller: &signer, description: String)
+        acquires CollectionRefs {
+        assert !(
             is_creator(caller),
             error::invalid_argument(E_COLLECTION_MUTATOR_FORBIDDEN),
         );
         let collection = get_collection();
-        let collection_refs = borrow_global<CollectionRefs>(object::object_address(&collection));
-        collection::set_description(&collection_refs.collection_mutator_ref, description);
+        let collection_refs = borrow_global<CollectionRefs>(
+            object::object_address(&collection)
+        );
+        collection::set_description(
+            &collection_refs.collection_mutator_ref,
+            description
+        );
     }
 
     /// Get the collection. Note, if the module is republished with a different
     /// address for the permitted collection creator after the collection has been
     /// created, this will cease to work. Same thing if the collection name is changed.
-    public fun get_collection(): Object<Collection> {
+    public fun get_collection(): Object<Collection>{
         // Get the address of the account we created to own the collection.
         let collection_creator_address = object::create_object_address(
             &PERMITTED_COLLECTION_CREATOR,
@@ -167,9 +181,12 @@ module addr::summits_collection {
     */
 
     // So we can mint tokens in the collection.
-    public(friend) fun get_collection_owner_signer(): signer acquires CollectionRefs {
+    public(friend) fun get_collection_owner_signer(): signer
+        acquires CollectionRefs {
         let collection = get_collection();
-        let collection_refs = borrow_global<CollectionRefs>(object::object_address(&collection));
+        let collection_refs = borrow_global<CollectionRefs>(
+            object::object_address(&collection)
+        );
         object::generate_signer_for_extending(&collection_refs.owner_extend_ref)
     }
 
@@ -178,15 +195,25 @@ module addr::summits_collection {
     }
 
     /// Returns true if the given account owns a token in the collection.
-    public fun is_token_owner(address: address): bool acquires TokenOwners {
+    public fun is_token_owner(address: address): bool
+        acquires TokenOwners {
         let collection = get_collection();
-        let token_owners = borrow_global<TokenOwners>(object::object_address(&collection));
+        let token_owners = borrow_global<TokenOwners>(
+            object::object_address(&collection)
+        );
         smart_table::contains(&token_owners.owners, address)
     }
 
-    public(friend) fun record_minted(address: address) acquires TokenOwners {
+    public(friend) fun record_minted(address: address)
+        acquires TokenOwners {
         let collection = get_collection();
-        let token_owners = borrow_global_mut<TokenOwners>(object::object_address(&collection));
-        smart_table::add(&mut token_owners.owners, address, true);
+        let token_owners = borrow_global_mut<TokenOwners>(
+            object::object_address(&collection)
+        );
+        smart_table::add(
+            &mut token_owners.owners,
+            address,
+            true
+        );
     }
 }
