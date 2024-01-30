@@ -1,4 +1,4 @@
-use super::{spawn_mountains, Mountain};
+use super::{spawn_mountains, Mountain, Randomness};
 use bevy::{
     ecs::system::RunSystemOnce, prelude::*, render::view::screenshot::ScreenshotManager,
     window::PrimaryWindow,
@@ -41,16 +41,14 @@ fn despawn_camera(mut commands: Commands, cameras: Query<Entity, With<Camera2d>>
 pub fn token_address_listener(
     channel: Res<TokenAddressReceiver>,
     mut commands: Commands,
-    window: Query<&Window>,
 ) {
     if let Ok(token_address) = channel.receiver.try_recv() {
         eprintln!("New token address: {}", token_address);
+        commands.insert_resource(Randomness::from_token_address(&token_address));
         commands.add(move |world: &mut World| {
             world.run_system_once(despawn_mountains);
             world.run_system_once(despawn_camera);
-        });
-        spawn_mountains(&mut commands, window, token_address);
-        commands.add(move |world: &mut World| {
+            world.run_system_once(spawn_mountains);
             world.run_system_once(capture_frame);
         });
     }

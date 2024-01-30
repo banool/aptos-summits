@@ -6,7 +6,10 @@ mod api;
 
 #[cfg(feature = "api")]
 pub use api::*;
-use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*, window::WindowResolution};
+use bevy::{
+    core_pipeline::clear_color::ClearColorConfig, ecs::system::RunSystemOnce, prelude::*,
+    window::WindowResolution,
+};
 use bevy_prototype_lyon::prelude::*;
 use clap::Parser;
 use rand::{Rng, SeedableRng};
@@ -63,7 +66,8 @@ impl AppConfig {
             token_address: self.initial_token_address,
         })
         .add_plugins(ShapePlugin)
-        .add_systems(Startup, initial_spawn);
+        .add_systems(Startup, initial_spawn)
+        .add_systems(Update, update_mountains);
 
         app
     }
@@ -93,12 +97,7 @@ fn interpolate(left: Color, right: Color, left_weight: f32) -> Color {
     Color::rgba(red, green, blue, alpha)
 }
 
-fn initial_spawn(mut commands: Commands, window: Query<&Window>, app_seed: Res<AppSeed>) {
-    spawn_mountains(&mut commands, window, app_seed.token_address.clone());
-}
-
-// TODO: Move this to to an update system and scroll each mountain layer.
-fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_address: String) {
+fn get_rng(token_address: &str) -> ChaCha8Rng {
     // Convert the token address into a u64 for the seed.
     let mut hasher = Sha256::new();
     hasher.update(&token_address);
@@ -106,10 +105,40 @@ fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_ad
     let first_eight_bytes = &result[0..8];
     let seed = u64::from_be_bytes(first_eight_bytes.try_into().unwrap());
 
-    println!("token address: {} // seed {}", token_address, seed);
+    println!("Token address: {} // Seed {}", token_address, seed);
 
     // Build deterministic rng with seed.
-    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    ChaCha8Rng::seed_from_u64(seed)
+}
+
+// This is not Clone on purpose, we only want to use one randomness.
+#[derive(Resource)]
+struct Randomness {
+    rng: ChaCha8Rng,
+}
+
+impl Randomness {
+    pub fn from_token_address(token_address: &str) -> Self {
+        Randomness {
+            rng: get_rng(token_address),
+        }
+    }
+}
+
+fn initial_spawn(mut commands: Commands, app_seed: Res<AppSeed>) {
+    commands.insert_resource(Randomness::from_token_address(&app_seed.token_address));
+    commands.add(move |world: &mut World| {
+        world.run_system_once(spawn_mountains);
+    });
+}
+
+// TODO: Move this to to an update system and scroll each mountain layer.
+fn spawn_mountains(
+    mut commands: Commands,
+    window: Query<&Window>,
+    mut randomness: ResMut<Randomness>,
+) {
+    let mut rng = &mut randomness.rng;
 
     // Generate sky color.
     let sky_color = match rng.gen_range(1..4) {
@@ -135,28 +164,37 @@ fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_ad
     let height = window.resolution.height() as f64;
 
     // Generate mountains back to front.
-    let mut z = 1.;
     let mut mountains = Vec::new();
-    let num_mountains: u64 = rng.gen_range(3..7);
+    let num_mountains: u64 = rng.gen_range(4..7);
     let mountain_base_color = rand_color(&mut rng, 1..255, 1..255, 1..255);
+    let base_max_height = height * 0.7;
+    // If this is close to 0, the heights of the mountains will be more similar.
+    let height_diff_multiplier = 0.7;
     for i in 0..num_mountains {
         let color = interpolate(
             mountain_base_color,
             sky_color,
             (i + 1) as f32 / num_mountains as f32,
         );
-        let min_height = -height / 3. / (num_mountains * (num_mountains - i)) as f64;
-        let max_height = height * 0.72;
+        let min_height = -height * 2.0 / (num_mountains * (num_mountains - i)) as f64;
+
+        // Scale max_height based on z-order.
+        let max_height =
+            base_max_height * (1.0 - (i as f64 / num_mountains as f64 * height_diff_multiplier));
+        println!(
+            "Mountain {} min height {} max height: {}",
+            i, min_height, max_height
+        );
+
         let mountain = Mountain::new(
-            &mut rng,
             window.width() as u32,
             min_height,
             max_height,
             color,
-            z,
+            (i + 1) as f32,
+            &mut randomness,
         );
         mountains.push(mountain);
-        z += 1.;
     }
 
     // Spawn and draw mountains.
@@ -165,97 +203,145 @@ fn spawn_mountains(mut commands: &mut Commands, window: Query<&Window>, token_ad
     }
 }
 
-// Move mountains slowly horizontally to the right, with mountains closer to the camera moving faster.
-/*
-fn move_mountains(time: Res<Time>, mut mountains: Query<&mut Mountain>) {
-    for mut mountain in mountains.iter_mut() {
-        let speed = 0.1 / mountain.z;
-        // Delete elements from the left of the heights so the mountains "scroll".
-        mountain.heights.drain(0..(speed * time.delta_seconds()) as usize);
-        // Redraw.
-        mountain.spawn();
+fn update_mountains(
+    time: Res<Time>,
+    window: Query<&Window>,
+    mut randomness: ResMut<Randomness>,
+    mut query: Query<(&mut Mountain, &mut Path)>,
+) {
+    let window = window.single();
+    let resolution = &window.resolution;
+
+    for (mut mountain, mut path) in query.iter_mut() {
+        // Scroll the heights of the mountain.
+        mountain.scroll(time.delta_seconds(), &mut randomness);
+
+        // Update the path.
+        *path = mountain.build_path(&resolution);
     }
 }
-*/
+
+struct MountainHeightGenerator {
+    height: f32,
+    slope: f32,
+    step_max: f32,
+    step_change: f32,
+    min_height: f32,
+    max_height: f32,
+}
+
+impl MountainHeightGenerator {
+    fn new(min_height: f32, max_height: f32, randomness: &mut ResMut<Randomness>) -> Self {
+        let rng = &mut randomness.rng;
+        let step_max = rng.gen_range(0.9..1.1);
+        let step_change = rng.gen_range(0.15..0.35);
+        let height = rng.gen_range(0.0..max_height);
+        let slope = rng.gen_range(0.0..step_max) * 2.0 - step_max;
+
+        MountainHeightGenerator {
+            height,
+            slope,
+            step_max,
+            step_change,
+            min_height,
+            max_height,
+        }
+    }
+}
+
+impl MountainHeightGenerator {
+    fn next(&mut self, randomness: &mut ResMut<Randomness>) -> Option<f32> {
+        self.height += self.slope;
+        self.slope += randomness.rng.gen_range(0.0..self.step_change) * 2.0 - self.step_change;
+
+        if self.slope > self.step_max {
+            self.slope = self.step_max;
+        } else if self.slope < -self.step_max {
+            self.slope = -self.step_max;
+        }
+
+        if self.height > self.max_height {
+            self.height = self.max_height;
+            self.slope *= -1.0;
+        } else if self.height < self.min_height {
+            self.height = self.min_height;
+            self.slope *= -1.0;
+        }
+
+        Some(self.height)
+    }
+}
 
 #[derive(Component)]
 struct Mountain {
     heights: Vec<f32>,
     color: Color,
     z: f32,
-}
-
-#[derive(Bundle)]
-struct MountainBundle {
-    mountain: Mountain,
-    shape_bundle: ShapeBundle,
-    fill: Fill,
+    height_generator: MountainHeightGenerator,
+    // To ensure we can scroll smoothly we need to keep track of what fraction of the
+    // pixel we have scrolled through.
+    pub sub_pixel_offset: f32,
 }
 
 impl Mountain {
     pub fn new(
-        rng: &mut ChaCha8Rng,
         width: u32,
         min_height: f64,
         max_height: f64,
         color: Color,
         z: f32,
+        randomness: &mut ResMut<Randomness>,
     ) -> Self {
-        let step_max = rng.gen_range(0.9..1.1);
-        let step_change = rng.gen_range(0.15..0.35);
-        let mut height = rng.gen_range(0.0..max_height);
-        let mut slope = rng.gen_range(0.0..step_max) * 2.0 - step_max;
+        // Initialize the height generator
+        let mut height_generator =
+            MountainHeightGenerator::new(min_height as f32, max_height as f32, randomness);
+
+        // Generate initial heights
         let mut heights: Vec<f32> = Vec::new();
-
-        for _ in 0..(width * 2) {
-            height += slope;
-            slope += rng.gen_range(0.0..step_change) * 2.0 - step_change;
-
-            if slope > step_max {
-                slope = step_max;
-            } else if slope < -step_max {
-                slope = -step_max;
-            }
-
-            if height > max_height {
-                height = max_height;
-                slope *= -1.0;
-            } else if height < min_height {
-                height = min_height;
-                slope *= -1.0;
-            }
-            heights.push(height as f32);
+        for _ in 0..width * 2 {
+            heights.push(height_generator.next(randomness).unwrap());
         }
-        Mountain { heights, color, z }
+
+        Mountain {
+            heights,
+            color,
+            z,
+            height_generator,
+            sub_pixel_offset: 0.0,
+        }
     }
 
-    pub fn spawn(self, commands: &mut Commands, resolution: &WindowResolution) {
+    fn build_path(self: &Mountain, resolution: &WindowResolution) -> Path {
         let mut path_builder = PathBuilder::new();
 
-        // Start in the bottom left corner.
+        // Start in the bottom left corner with the sub_pixel_offset.
+        let start_x = -resolution.width() / 2. - self.sub_pixel_offset;
+
         path_builder.move_to(Vec2::new(
-            -resolution.width() / 2.,
+            start_x,
             -resolution.height() / 2.,
         ));
 
         for (i, y) in self.heights.iter().enumerate() {
-            let x = (i as i32 - resolution.width() as i32) as f32;
+            let x = start_x + i as f32;
             let point = Vec2::new(x, *y);
             path_builder.line_to(point);
         }
 
         // End in the bottom right corner.
-        path_builder.line_to(Vec2::new(
-            resolution.width() / 2.,
-            -resolution.height() / 2.,
-        ));
+        let end_x = start_x + self.heights.len() as f32;
+        path_builder.line_to(Vec2::new(end_x, -resolution.height() / 2.0));
 
         path_builder.close();
-        let path = path_builder.build();
+        path_builder.build()
+    }
+
+    pub fn spawn(self, commands: &mut Commands, resolution: &WindowResolution) {
+        let path = self.build_path(&resolution);
 
         // Apply z transformation so the shapes are layered properly and move
-        // everything down.
-        let transform = Transform::from_xyz(0.0, -resolution.height() / 2., self.z);
+        // everything down a bit.
+        let transform = Transform::from_xyz(0.0, -resolution.height() / 3.0, self.z);
 
         let color = self.color;
         commands.spawn(MountainBundle {
@@ -268,6 +354,35 @@ impl Mountain {
             fill: Fill::color(color),
         });
     }
+
+    pub fn scroll(&mut self, delta_seconds: f32, randomness: &mut ResMut<Randomness>) {
+        let movement = self.speed() * delta_seconds;
+        self.sub_pixel_offset += movement;
+
+        let whole_pixels = self.sub_pixel_offset.floor() as usize;
+        self.sub_pixel_offset -= whole_pixels as f32;
+
+        // Remove points from the left.
+        self.heights.drain(0..whole_pixels);
+
+        // Add points to the right.
+        for _ in 0..whole_pixels {
+            self.heights.push(self.height_generator.next(randomness).unwrap());
+        }
+    }
+
+    pub fn speed(&self) -> f32 {
+        let exponent = 2.0;
+        let base_speed = 0.8;
+        base_speed * self.z.powf(exponent)
+    }
+}
+
+#[derive(Bundle)]
+struct MountainBundle {
+    mountain: Mountain,
+    shape_bundle: ShapeBundle,
+    fill: Fill,
 }
 
 /*
