@@ -98,7 +98,7 @@ function getModuleAddressAndName(network: Network): {
       // Doesn't work right now.
       return {
         moduleAddress:
-          "0x81e2e2499407693c81fe65c86405ca70df529438339d9da7a6fc2520142b591e",
+          "0x67a614e8df22d397b7a7057d743e6b30f8ef2820c054a391658c06199187fa3c",
       };
     case Network.CUSTOM:
       throw "CUSTOM not supported";
