@@ -29,18 +29,18 @@ module addr::summits_token {
         mutator_ref: MutatorRef,
     }
 
-    /// Create a new canvas.
-    public entry fun mint(_caller: &signer,) {
+    /// Create a new token in the collection. Anyone can call this.
+    public entry fun mint(_caller: &signer) {
         // For now we're making it that only the collection owner can mint tokens,
-        // see mint_to.
+        // rather than using this function with an allowlist on chain. See mint_to.
         abort 1
         // let caller_addr = signer::address_of(caller);
         // mint_inner(caller_addr);
     }
 
-    public entry fun mint_to(caller: &signer, mint_to: address,) {
+    public entry fun mint_to(caller: &signer, mint_to: address) {
         // Confirm the caller is the collection owner.
-        assert_caller_is_collection_owner(caller);
+        assert_caller_is_collection_creator(caller);
 
         // For now we're making it that only the collection owner can mint tokens.
         mint_inner(mint_to);
@@ -54,26 +54,9 @@ module addr::summits_token {
     // As you can see, it is a bit of a dance to mint a token where the object
     // address is used for the token URI. We should make this easier.
     //
-    // TODO: This code only works if the caller is the creator of the collection
-    // because you can only pass in the collection name, not Object<Collection>, to the
-    // token mint functions. This means this code cannot work as minting code.
-    // Because token::create only accepts a &signer, it means we can't just get the
-    // collection address and pass that in too. I feel like this is bad UX.
-    // As far as I can tell from the code, there is no reason the signer provided to
-    // token::create to be the creator of the collection.
-    //
-    // In the knight example the caller is clearly only ever the collection creator.
-    // Maybe it only works if I make the owner of the collection a resource / object
-    // account and store a signercap. I use that to make a signer.
-    //
+    // Note: I'd rather do this differently, see:
     // https://aptos-org.slack.com/archives/C036X27DZNG/p1705852198895739
-    //
-    // TODO: I gave up on this extensible design where it takes an Object<Collection>
-    // and just made this module hardcoded to support a single collection.
-    fun mint_inner(mint_to: address,): Object<TokenRefs>{
-        // TODO: Add on chain allowlist instead.
-        // assert_caller_is_collection_owner(caller, collection);
-
+    fun mint_inner(mint_to: address): Object<TokenRefs>{
         let description = string::utf8(
             b"A commemorative, unique APTOS PASSPORT stamp to celebrate the first ever Aptos Ecosystem Summit, January 22-26, 2024. The Summit brought together 40+ premier Aptos projects, partners, and supporters to celebrate Aptos innovation across the ecosystem."
         );
@@ -82,7 +65,7 @@ module addr::summits_token {
         );
         let name_suffix = string::utf8(b"");
 
-        // Confirm the user has not already minted a token.
+        // Confirm the user does not already own a token in the collection.
         assert !(
             !is_token_owner(mint_to),
             error::invalid_state(E_ALREADY_MINTED)
@@ -114,7 +97,8 @@ module addr::summits_token {
 
         // It is important we call this after we moved something into the container
         // first before calling this, otherwise there will be no ObjectCore there yet.
-        // TODO: This doesn't make sense to me but it seems to be working that way.
+        // TODO: This doesn't make sense to me based on the code but it seems to work
+        // that way.
         let obj = object::object_from_constructor_ref(&constructor_ref);
 
         // See https://aptos-org.slack.com/archives/C03N9HNSUB1/p1686764312687349 for
@@ -134,25 +118,6 @@ module addr::summits_token {
         string::append(&mut uri, string::utf8(b"0x"));
         string::append(&mut uri, object_address_string);
         string::append(&mut uri, string::utf8(b".png"));
-
-        /*
-        let chain_id = get_chain_id();
-        let network_str = if (chain_id == 1) {
-            b"mainnet"
-        } else if (chain_id == 2) {
-            b"testnet"
-        } else if (chain_id == 4) {
-            b"localnet"
-        } else {
-            b"devnet"
-        };
-        let uri = string::utf8(b"https://api.summits.dport.me);
-        string::append(&mut uri, string::utf8(network_str));
-        string::append(&mut uri, string::utf8(b"ediax"));
-        string::append(&mut uri, object_address_string);
-        // TODO: This might end up being a GIF or something else.
-        string::append(&mut uri, string::utf8(b".png"));
-        */
 
         // Set the real URI.
         token::set_uri(
@@ -175,7 +140,9 @@ module addr::summits_token {
     //                                  Collection owner                             //
     ///////////////////////////////////////////////////////////////////////////////////
 
-    fun assert_caller_is_collection_owner(caller: &signer) {
+    /// Confirm the caller is the creator of the collection. Notably they're not the
+    /// owner, an object that the caller owns is.
+    fun assert_caller_is_collection_creator(caller: &signer) {
         assert !(
             is_creator_of_collection(caller),
             error::invalid_state(E_CALLER_NOT_COLLECTION_OWNER)
@@ -188,14 +155,14 @@ module addr::summits_token {
     // Functions that only the collection owner can call.
 
     /// Set the URI for the token. This is necessary if down the line we change how we
-    /// generate the image.
+    /// generate / where we store the image.
     public entry fun set_uri(
         caller: &signer,
         refs: Object<TokenRefs>,
         uri: String
     )
         acquires TokenRefs {
-        assert_caller_is_collection_owner(caller);
+        assert_caller_is_collection_creator(caller);
         let object_addr = object::object_address(&refs);
         let refs_ = borrow_global<TokenRefs>(object_addr);
         token::set_uri(&refs_.mutator_ref, uri);
@@ -321,3 +288,25 @@ module addr::summits_token {
         mint_token(&friend1);
     }
 }
+
+
+/*
+Logic for building a URL with the chain name in it.
+
+let chain_id = get_chain_id();
+let network_str = if (chain_id == 1) {
+    b"mainnet"
+} else if (chain_id == 2) {
+    b"testnet"
+} else if (chain_id == 4) {
+    b"localnet"
+} else {
+    b"devnet"
+};
+let uri = string::utf8(b"https://api.summits.dport.me);
+string::append(&mut uri, string::utf8(network_str));
+string::append(&mut uri, string::utf8(b"ediax"));
+string::append(&mut uri, object_address_string);
+// TODO: This might end up being a GIF or something else.
+string::append(&mut uri, string::utf8(b".png"));
+*/

@@ -1,14 +1,6 @@
 // Copyright (c) Aptos Labs
 // SPDX-License-Identifier: Apache-2.0
 
-//! See the README for more information about how this module works.
-
-/// A note on the set_* functions:
-/// This module allows the owner of the collection to transfer ownership to another
-/// account. As such, in order to determine the current owner of the collection, we
-/// must use the collection creator and collection name to determine its address and
-/// then check the owner that way, rather than just assume the creator is the owner.
-
 module addr::summits_collection {
     use std::error;
     use std::option;
@@ -48,12 +40,8 @@ module addr::summits_collection {
     const COLLECTION_NAME: vector<u8> = b"APTOS PASSPORT: Ecosystem Summit One";
     const COLLECTION_SEED: vector<u8> = b"AptosPassportSummitOneSeed";
 
-    // NOTE: This has been changed to be specific to the summits collection. You can
-    // only call this once courtesy of the hardcoded SEED. It is just simpler this way.
-    // As such the code is a bit of a mess, in some cases you can pass in args for
-    // creating the collection even though you can only call this function once.
-    // Clean up required, though I disagree with the token API as it is now. We'll keep
-    // discussing it.
+    /// Create the collection and all the related structs.
+    /// You can only call this once unless you change COLLECTION_SEED.
     public entry fun create(publisher: &signer) {
         // For now only allow the module publisher to create collections.
         assert !(
@@ -61,7 +49,7 @@ module addr::summits_collection {
             error::invalid_argument(E_COLLECTION_CREATOR_FORBIDDEN),
         );
 
-        let name = string::utf8(COLLECTION_NAME);
+        let name = get_collection_name();
         let max_supply = 100;
 
         // Create an object that will own the collection. This is necessary due to
@@ -94,7 +82,8 @@ module addr::summits_collection {
             owner_extend_ref
         };
 
-        // TODO: For now the code is just baked into the frontend.
+        // TODO: For now the code is just baked into the frontend, it is not on chain
+        // or on Arweave or anything.
         // Create a holder for the code.
         // create_empty_holder(&constructor_ref, allow_code_updates);
 
@@ -162,25 +151,13 @@ module addr::summits_collection {
         // Pass that in to figure out the collection address.
         let collection_address = collection::create_collection_address(
             &collection_creator_address,
-            &string::utf8(COLLECTION_NAME),
+            &get_collection_name(),
         );
         object::address_to_object<Collection>(collection_address)
     }
 
-    // This is not is_owner, it is based on where the contract is deployed, not who
-    // owns the collection.
-    public fun is_creator(caller: &signer): bool {
-        signer::address_of(caller) == PERMITTED_COLLECTION_CREATOR
-    }
-
-    /*
-    public fun is_owner(caller: &signer): bool {
-        let collection = get_collection();
-        object::is_owner<Collection>(collection, signer::address_of(caller))
-    }
-    */
-
-    // So we can mint tokens in the collection.
+    /// So we can mint tokens in the collection. Friend function so only token.move can
+    /// call it.
     public(friend) fun get_collection_owner_signer(): signer
         acquires CollectionRefs {
         let collection = get_collection();
@@ -194,6 +171,12 @@ module addr::summits_collection {
         string::utf8(COLLECTION_NAME)
     }
 
+    /// This is not is_owner, it is based on where the contract is deployed, not who
+    /// owns the collection. The contract deployer is the one we give privileges to.
+    public fun is_creator(caller: &signer): bool {
+        signer::address_of(caller) == PERMITTED_COLLECTION_CREATOR
+    }
+
     /// Returns true if the given account owns a token in the collection.
     public fun is_token_owner(address: address): bool
         acquires TokenOwners {
@@ -204,6 +187,7 @@ module addr::summits_collection {
         smart_table::contains(&token_owners.owners, address)
     }
 
+    /// Record that we minted a token in the collection to the given address.
     public(friend) fun record_minted(address: address)
         acquires TokenOwners {
         let collection = get_collection();
