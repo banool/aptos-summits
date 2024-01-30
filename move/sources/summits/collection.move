@@ -14,8 +14,8 @@ module addr::summits_collection {
     use std::option;
     use std::signer;
     use std::string::{Self, String};
-    // use addr::genr::create_empty_holder;
     use aptos_std::object::{Self, Object, ExtendRef};
+    use aptos_std::smart_table::{Self, SmartTable};
     use aptos_token_objects::collection::{Self, Collection, MutatorRef};
 
     friend addr::summits_token;
@@ -40,10 +40,13 @@ module addr::summits_collection {
         owner_extend_ref: ExtendRef,
     }
 
+    /// Track who we have minted a token in the collection to.
+    struct TokenOwners has key {
+        owners: SmartTable<address, bool>,
+    }
+
     const COLLECTION_NAME: vector<u8> = b"APTOS PASSPORT: Ecosystem Summit One";
     const COLLECTION_SEED: vector<u8> = b"AptosPassportSummitOneSeed";
-
-    const COLLECTION_DESCRIPTION: vector<u8> = b"Stamps to memorialize the first ever Aptos Ecosystem Summit.";
 
     // NOTE: This has been changed to be specific to the summits collection. You can
     // only call this once courtesy of the hardcoded SEED. It is just simpler this way.
@@ -95,6 +98,15 @@ module addr::summits_collection {
 
         // Store the refs alongside the collection.
         move_to(&object_signer, collection_refs);
+
+        // Store the map of who owns a token in the collection.
+        move_to(
+            &object_signer,
+            TokenOwners {
+                owners: smart_table::new(),
+            },
+        );
+
     }
 
     #[test_only]
@@ -163,5 +175,18 @@ module addr::summits_collection {
 
     public fun get_collection_name(): String {
         string::utf8(COLLECTION_NAME)
+    }
+
+    /// Returns true if the given account owns a token in the collection.
+    public fun is_token_owner(address: address): bool acquires TokenOwners {
+        let collection = get_collection();
+        let token_owners = borrow_global<TokenOwners>(object::object_address(&collection));
+        smart_table::contains(&token_owners.owners, address)
+    }
+
+    public(friend) fun record_minted(address: address) acquires TokenOwners {
+        let collection = get_collection();
+        let token_owners = borrow_global_mut<TokenOwners>(object::object_address(&collection));
+        smart_table::add(&mut token_owners.owners, address, true);
     }
 }

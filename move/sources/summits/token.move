@@ -4,19 +4,24 @@
 module addr::summits_token {
     use addr::summits_collection::{
         is_creator as is_creator_of_collection,
+        is_token_owner,
         get_collection_name,
         get_collection_owner_signer,
+        record_minted,
     };
+    use std::error;
     use std::option;
-    // use std::signer;
     use std::string::{Self, String};
-    use aptos_framework::chain_id::{get as get_chain_id};
+    // use aptos_framework::chain_id::{get as get_chain_id};
     use aptos_std::object::{Self, Object};
     use aptos_std::string_utils;
     use aptos_token_objects::token::{Self, MutatorRef};
 
     /// The caller tried to call a function that requires collection owner privileges.
     const E_CALLER_NOT_COLLECTION_OWNER: u64 = 1;
+
+    /// Tried to mint to someone who already owns a token in the collection.
+    const E_ALREADY_MINTED: u64 = 2;
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct TokenRefs has key {
@@ -80,6 +85,9 @@ module addr::summits_token {
         let name_prefix = string::utf8(b"APTOS PASSPORT: Ecosystem Summit One #");
         let name_suffix = string::utf8(b"");
 
+        // Confirm the user has not already minted a token.
+        assert!(!is_token_owner(mint_to), error::invalid_state(E_ALREADY_MINTED));
+
         // Get the signer of the owner of the collection.
         let collection_owner_signer = get_collection_owner_signer();
 
@@ -115,6 +123,12 @@ module addr::summits_token {
             1,
             string::length(&object_address_string),
         );
+        let uri = string::utf8(b"https://storage.googleapis.com/aptos-summits/images/");
+        string::append(&mut uri, string::utf8(b"0x"));
+        string::append(&mut uri, object_address_string);
+        string::append(&mut uri, string::utf8(b".png"));
+
+        /*
         let chain_id = get_chain_id();
         let network_str = if (chain_id == 1) {
             b"mainnet"
@@ -125,12 +139,6 @@ module addr::summits_token {
         } else {
             b"devnet"
         };
-        let uri = string::utf8(b"https://storage.googleapis.com/aptos-summits/images/");
-        string::append(&mut uri, string::utf8(b"0x"));
-        string::append(&mut uri, object_address_string);
-        string::append(&mut uri, string::utf8(b".png"));
-
-        /*
         let uri = string::utf8(b"https://api.summits.dport.me/");
         string::append(&mut uri, string::utf8(network_str));
         string::append(&mut uri, string::utf8(b"/media/0x"));
@@ -147,6 +155,9 @@ module addr::summits_token {
         let linear_transfer_ref = object::generate_linear_transfer_ref(&transfer_ref);
         object::transfer_with_ref(linear_transfer_ref, mint_to);
 
+        // Record that the user has minted a token.
+        record_minted(mint_to);
+
         obj
     }
 
@@ -155,7 +166,7 @@ module addr::summits_token {
     ///////////////////////////////////////////////////////////////////////////////////
 
     fun assert_caller_is_collection_owner(caller: &signer) {
-        assert!(is_creator_of_collection(caller), E_CALLER_NOT_COLLECTION_OWNER);
+        assert!(is_creator_of_collection(caller), error::invalid_state(E_CALLER_NOT_COLLECTION_OWNER));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -254,5 +265,14 @@ module addr::summits_token {
         aptos_std::debug::print(&token::uri(tok1));
         let tok2 = mint_token(&friend1);
         aptos_std::debug::print(&token::uri(tok2));
+    }
+
+    // Confirm that you can't mint twice.
+    #[expected_failure(abort_code = 196610, location = Self)]
+    #[test(caller = @addr, friend1 = @0x456, friend2 = @0x789, aptos_framework = @aptos_framework)]
+    fun test_mint_twice(caller: signer, friend1: signer, friend2: signer, aptos_framework: signer) {
+        init_test(&caller, &friend1, &friend2, &aptos_framework);
+        let tok1 = mint_token(&friend1);
+        let tok2 = mint_token(&friend1);
     }
 }
