@@ -6,7 +6,7 @@ import * as Dom from "graphql-request/dist/types.dom";
 export const GetTokens = `
     query GetTokens($owner: String) {
   current_token_ownerships_v2(
-    where: {current_token_data: {current_collection: {collection_name: {_eq: "Aptos Summits"}}}, owner_address: {_eq: $owner}}
+    where: {current_token_data: {current_collection: {collection_name: {_eq: "APTOS PASSPORT: Ecosystem Summit One"}}}, owner_address: {_eq: $owner}}
   ) {
     current_token_data {
       token_data_id

@@ -1,4 +1,4 @@
-import { Box, Flex, useToast } from "@chakra-ui/react";
+import { Box, Flex, useToast, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { getModuleIdentifier, useGlobalState } from "../../context/GlobalState";
 import {
@@ -38,7 +38,7 @@ export const MintButton = () => {
       return;
     }
 
-    const data = {
+    const payload = {
       function: getModuleIdentifier(
         globalState,
         "summits_token",
@@ -51,7 +51,7 @@ export const MintButton = () => {
     try {
       let submissionResponse = await signAndSubmitTransaction({
         sender: account!.address,
-        data,
+        data: payload,
       });
       const waitResponse = await globalState.client.waitForTransaction({
         transactionHash: submissionResponse.hash,
@@ -98,10 +98,11 @@ export const MintButton = () => {
   const buttonEnabled = account !== null;
 
   let buttonText;
+  let additionalText = null;
   let onClick = null;
   if (!buttonEnabled) {
     buttonText = "Connect Wallet";
-    onClick = () => navigate(`/${tokenAddress}?network=${globalState.network}`);
+    // onClick = () => navigate(`/${tokenAddress}?network=${globalState.network}`);
   } else if (isLoading) {
     buttonText = "Loading...";
   } else if (tokenAddress) {
@@ -111,21 +112,35 @@ export const MintButton = () => {
     buttonText = "View";
     onClick = () => navigate(`/${data[0]}?network=${globalState.network}`);
   } else {
+    /*
+    We don't let the user mint for now, we do the minting.
     buttonText = "Mint";
     onClick = handleSubmit;
+    */
+    buttonText = "Sorry!";
+    additionalText =
+      "You don't own an APTOS PASSPORT Ecosystem Summit One token.";
   }
 
   return (
     <Box p={10}>
-      <Flex alignContent="center">
-        <Box
-          width="300px"
-          height="250px"
-          className="mountain-button"
-          onClick={onClick !== null ? onClick : undefined}
-        >
-          <span>{buttonText}</span>
-        </Box>
+      <Flex direction="column" align="center" justify="center">
+        <Flex alignContent="center" direction="column">
+          <Box
+            width="300px"
+            height="250px"
+            className="mountain-button"
+            cursor={onClick !== null ? "pointer" : "default"}
+            onClick={onClick !== null ? onClick : undefined}
+          >
+            <span>{buttonText}</span>
+          </Box>
+        </Flex>
+        {additionalText !== null && (
+          <Box p={10}>
+            <Text textAlign="center">{additionalText}</Text>
+          </Box>
+        )}
       </Flex>
     </Box>
   );

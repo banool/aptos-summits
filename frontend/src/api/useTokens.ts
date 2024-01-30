@@ -10,7 +10,7 @@ export function useTokens(
 ) {
   const [globalState] = useGlobalState();
   return useQuery<string[]>({
-    queryKey: ["getGames", userAddress],
+    queryKey: ["getTokens", userAddress],
     queryFn: async () => {
       const response = await globalState.client.queryIndexer<GetTokensQuery>({
         query: {

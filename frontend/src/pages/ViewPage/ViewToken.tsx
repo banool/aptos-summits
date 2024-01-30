@@ -1,5 +1,5 @@
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import init, { run } from "../../summits/summits";
 
 const CANVAS_ID = "summitcanvas";
@@ -7,6 +7,37 @@ const CANVAS_ID = "summitcanvas";
 export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  // If this width doesn't match the width used elsewhere, the generation will run
+  // differently due to how the values for the mountains are generated (based on
+  // width rather than just generating heaps of points and then throwing some away
+  // if the actual width is smaller). As such, to scale down the canvas after the
+  // fact we do a css transform.
+  const renderWidth = 2000;
+
+  // How much of the page the art should take up.
+  const artFraction = 0.8;
+
+  const [scale, setScale] = useState(0.1);
+
+  // This hook sets the `scale` that we pass to the CSS transform to make sure the
+  // canvas fills 80% of the page.
+  useEffect(() => {
+    const handleResize = () => {
+      const smallerDimension = Math.min(window.innerWidth, window.innerHeight);
+      const newScale = (smallerDimension * artFraction) / renderWidth;
+      setScale(newScale);
+    };
+
+    // Calculate the scale factor on initial render
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup the event listener
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   async function runWasm() {
     setLoading(true);
@@ -19,35 +50,24 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
     setLoading(false);
     setLoaded(true);
 
-    // This doesn't work. Even if you do change the size of the canvas via the browser,
-    // it doesn't display correctly. There has to be a way to let a canvas render to
-    // the size it wants but constrain it with the parent.
-    /*
-    setInterval(() => {
-      const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement;
-      if (canvas) {
-        canvas.width = width;
-        canvas.height = width;
-      }
-    }, 100);
-    */
-
-    // If this width doesn't match the width used elsewhere, the generation will run
-    // differently due to how the values for the mountains are generated (based on
-    // width rather than just generating heaps of points and then throwing some away
-    // if the actual width is smaller).
-    const width = 700;
-
     // This blocks forever.
-    run(width, tokenAddress, `#${CANVAS_ID}`);
+    run(renderWidth, tokenAddress, `#${CANVAS_ID}`);
   }
 
   let button = null;
+
+  /*
   if (loading) {
     button = <Button isDisabled={true}>Loading...</Button>;
   } else if (!loaded) {
     button = <Button onClick={runWasm}>Load</Button>;
   }
+  */
+
+  // Just run the wasm automatically.
+  useEffect(() => {
+    runWasm();
+  }, []);
 
   // The w and h for the box wrapping the canvas don't constrain the size of the
   // canvas, it just creates a sort of "window" into the canvas.
@@ -59,15 +79,26 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
       alignItems="center"
       flexDirection="column"
     >
+      {loaded && (
+        <Box paddingBottom={5}>
+          <Text>Click on the art and then press P to pause / unpause.</Text>
+        </Box>
+      )}
       {button}
       {!loaded && (
         <Text p={5}>
-          Refresh the page and try again if the image doesn't load in ~10
-          seconds.
+          Loading. Refresh the page and try again if the image doesn't load in
+          ~10 seconds.
         </Text>
       )}
       <Box filter={loading ? "blur(4px)" : "none"}>
-        <canvas id={CANVAS_ID}></canvas>
+        <canvas
+          id={CANVAS_ID}
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: "top center",
+          }}
+        ></canvas>
       </Box>
     </Flex>
   );

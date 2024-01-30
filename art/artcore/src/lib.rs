@@ -390,7 +390,7 @@ impl Mountain {
 
     pub fn speed(&self) -> f32 {
         let exponent = 2.0;
-        let base_speed = 0.8;
+        let base_speed = 1.2;
         base_speed * self.z.powf(exponent)
     }
 }
