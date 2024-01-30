@@ -76,7 +76,7 @@ module addr::summits_token {
         // TODO: Add on chain allowlist instead.
         // assert_caller_is_collection_owner(caller, collection);
 
-        let description = string::utf8(b"A stamp to memorialize the first ever Aptos Ecosystem Summit.");
+        let description = string::utf8(b"A commemorative, unique APTOS PASSPORT stamp to celebrate the first ever Aptos Ecosystem Summit, January 22-26, 2024. The Summit brought together 40+ premier Aptos projects, partners, and supporters to celebrate Aptos innovation across the ecosystem.");
         let name_prefix = string::utf8(b"APTOS PASSPORT: Ecosystem Summit One #");
         let name_suffix = string::utf8(b"");
 

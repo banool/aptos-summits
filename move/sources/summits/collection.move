@@ -40,8 +40,10 @@ module addr::summits_collection {
         owner_extend_ref: ExtendRef,
     }
 
-    const COLLECTION_NAME: vector<u8> = b"Aptos Passport: Summit One";
-    const COLLECTION_SEED: vector<u8> = b"AptosPassportSummitOneOwnerSeed";
+    const COLLECTION_NAME: vector<u8> = b"APTOS PASSPORT: Ecosystem Summit One";
+    const COLLECTION_SEED: vector<u8> = b"AptosPassportSummitOneSeed";
+
+    const COLLECTION_DESCRIPTION: vector<u8> = b"Stamps to memorialize the first ever Aptos Ecosystem Summit.";
 
     // NOTE: This has been changed to be specific to the summits collection. You can
     // only call this once courtesy of the hardcoded SEED. It is just simpler this way.
@@ -70,12 +72,13 @@ module addr::summits_collection {
 
         let constructor_ref = collection::create_fixed_collection(
             &collection_owner_signer,
-            string::utf8(b"Stamps to memorialize the first ever Aptos Ecosystem Summit."),
+            // \xF0\x9F\x8C\x90 is the globe emoji.
+            string::utf8(b"This NFT collection commemorates the first ever Aptos Ecosystem Summit from January 22-26, 2024. This week brought together 40+ premier Aptos projects, partners, and supporters to celebrate Aptos innovation across the ecosystem. These NFTs are soulbound to honor the growing community of builders who have gathered for Aptos in real life. The artwork is algorithmically generated, so every piece of art is completely unique. As part of the APTOS PASSPORT, these NFTs will serve as an access point for deeper connection with the Aptos community. Thank you to everyone who joined the Aptos Foundation for the 2024 Aptos Ecosystem Summit in Palo Alto, CA. Make Every M\xF0\x9F\x8C\x90ve Count."),
             max_supply,
             name,
             option::none(),
             // We just use one of the tokens.
-            string::utf8(b"https://storage.googleapis.com/aptos-summits/images/0xc0881d4b59a54bbd5c0015a3c42ee10bc3ee824776b021a1636297f27552f0a4.png"),
+            string::utf8(b"https://storage.googleapis.com/aptos-summits/images/0x8f65e467a77e2f77c23c6689c8ff6c1d97f5188e4a6b24c7d0ea369400654395.png"),
         );
 
         let collection_mutator_ref = collection::generate_mutator_ref(&constructor_ref);
