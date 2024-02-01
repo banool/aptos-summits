@@ -24,6 +24,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("path")
     parser.add_argument("--profile", required=True)
+    parser.add_argument("--assume-yes", action="store_true")
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -61,8 +62,21 @@ def main():
         if args.dry_run:
             continue
         try:
+            cmd = [
+                "aptos",
+                "move",
+                "run",
+                "--profile",
+                args.profile,
+                "--function-id",
+                function_id,
+                "--args",
+                f"address:{address}",
+            ]
+            if args.assume_yes:
+                cmd.append("--assume-yes")
             subprocess.run(
-                ["aptos", "move", "run", "--profile", args.profile, "--function-id", function_id, "--args", f"address:{address}", "--assume-yes"],
+                cmd,
                 check=True,
             )
             logging.info(f"Minted to {address}")

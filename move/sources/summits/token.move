@@ -131,6 +131,9 @@ module addr::summits_token {
         let linear_transfer_ref = object::generate_linear_transfer_ref(&transfer_ref);
         object::transfer_with_ref(linear_transfer_ref, mint_to);
 
+        // Make it soulbound.
+        object::disable_ungated_transfer(&transfer_ref);
+
         // Record that the user has minted a token.
         record_minted(mint_to);
 
@@ -154,6 +157,19 @@ module addr::summits_token {
         let object_addr = object::object_address(&refs);
         let refs_ = borrow_global<TokenRefs>(object_addr);
         token::set_uri(&refs_.mutator_ref, uri);
+    }
+
+    /// I forgot to do this at first for some of the tokens, so I made this function
+    /// to do it after the fact. We don't need to call this separately anymore, I do
+    /// it as part of the mint now.
+    public entry fun disable_ungated_transfer(
+        caller: &signer,
+        token: Object<Token>,
+    ) acquires TokenRefs {
+        assert_caller_is_collection_creator(caller);
+        let object_addr = object::object_address(&token);
+        let refs_ = borrow_global<TokenRefs>(object_addr);
+        object::disable_ungated_transfer(&refs_.transfer_ref);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////
