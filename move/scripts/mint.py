@@ -12,10 +12,12 @@ python scripts/mint.py --profile local ~/Downloads/data.csv
 
 import argparse
 import csv
+import json
 import logging
 import subprocess
-import yaml
+import urllib.request
 
+import yaml
 
 logging.basicConfig(level="INFO", format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -37,24 +39,45 @@ def main():
     if args.debug:
         logging.setLevel("DEBUG")
 
-    addresses = []
-    with open(args.path) as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader:
-            address = row[6]
-            addresses.append(address)
-
-    logging.info(f"Minting to {len(addresses)} addresses")
-
-    addresses = [address[2:] for address in addresses if address.startswith("0x")]
-    addresses = [address.lower() for address in addresses]
-    addresses = [address.zfill(64) for address in addresses]
-    addresses = [f"0x{address}" for address in addresses]
-
     with open(".aptos/config.yaml") as f:
         config = yaml.safe_load(f)
 
     contract_address = "0x" + config["profiles"][args.profile]["account"]
+
+    raw = []
+    with open(args.path) as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            address = row[6]
+            raw.append(address)
+
+    addresses = []
+    for address in raw:
+        address = address.lower()
+        if address.startswith("0x"):
+            address = address[2:]
+        # Confirm the address is valid hex.
+        try:
+            int(address, 16)
+        except:
+            logging.warning(
+                f"Not an address, trying to look it up as a name: {address}"
+            )
+            maybe_address = name_to_address(address)
+            try:
+                int(address, 16)
+                address = maybe_address
+            except:
+                logging.warning(f"Invalid address, not an ANS name either: {address}")
+                continue
+        address = address.zfill(64)
+        address = "0x" + address
+        addresses.append(address)
+
+    logging.info(f"Minting to {len(addresses)} addresses")
+
+    # Remove duplicates while preserving order.
+    addresses = list(dict.fromkeys(addresses))
 
     function_id = f"{contract_address}::summits_token::mint_to"
     for address in addresses:
@@ -84,6 +107,31 @@ def main():
             # We expect minting to fail if the address already has a token so we just
             # warn if something goes wrong.
             logging.warning(f"Minting to {address} failed")
+
+
+def name_to_address(name):
+    # Constructing the URL
+    url = (
+        f"https://www.aptosnames.com/api/mainnet/v1/address/{urllib.parse.quote(name)}"
+    )
+
+    # Making the request
+    req = urllib.request.Request(url)
+
+    # Handling the response
+    with urllib.request.urlopen(req) as response:
+        if response.status == 200:
+            # Reading and decoding the response
+            response_body = response.read()
+            data = json.loads(response_body.decode("utf-8"))
+
+            # Remove leading 0x since we add it back later.
+            addr = data.get("address")
+            if addr:
+                return addr[2:]
+            return None
+        else:
+            return None
 
 
 if __name__ == "__main__":
