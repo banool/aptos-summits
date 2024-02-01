@@ -132,58 +132,58 @@ def main():
         )
         print("[Local] Created account for player 2 on local testnet")
 
-    # Create the collection.
-    result = subprocess.run(
-        [
-            args.aptos_cli_path,
-            "move",
-            "run",
-            "--assume-yes",
-            "--profile",
-            PROFILE_NAME,
-            "--function-id",
-            f"{ACCOUNT_ADDRESS}::summits_collection::create",
-        ],
-        capture_output=True,
-        check=True,
-        universal_newlines=True,
-        cwd="move/",
-    )
+        # Create the collection.
+        result = subprocess.run(
+            [
+                args.aptos_cli_path,
+                "move",
+                "run",
+                "--assume-yes",
+                "--profile",
+                PROFILE_NAME,
+                "--function-id",
+                f"{ACCOUNT_ADDRESS}::summits_collection::create",
+            ],
+            capture_output=True,
+            check=True,
+            universal_newlines=True,
+            cwd="move/",
+        )
 
-    # Get the txn hash of the txn we just submitted.
-    txn_hash = json.loads(result.stdout)["Result"]["transaction_hash"]
+        # Get the txn hash of the txn we just submitted.
+        txn_hash = json.loads(result.stdout)["Result"]["transaction_hash"]
 
-    # Get the data of the txn we just submitted.
-    response = urllib.request.urlopen(f"http://127.0.0.1:8080/v1/transactions/by_hash/{txn_hash}")
-    data = json.loads(response.read().decode("utf-8"))
+        # Get the data of the txn we just submitted.
+        response = urllib.request.urlopen(f"http://127.0.0.1:8080/v1/transactions/by_hash/{txn_hash}")
+        data = json.loads(response.read().decode("utf-8"))
 
-    # Get and print the address of the collection we just created.
-    for change in data["changes"]:
-        if change["data"].get("type") == "0x4::collection::Collection":
-            collection_address = change["address"]
-            break
-    print(f"[Local] Created collection at {collection_address}")
+        # Get and print the address of the collection we just created.
+        for change in data["changes"]:
+            if change["data"].get("type") == "0x4::collection::Collection":
+                collection_address = change["address"]
+                break
+        print(f"[Local] Created collection at {collection_address}")
 
-    # Mint a token to player 2..
-    subprocess.run(
-        [
-            args.aptos_cli_path,
-            "move",
-            "run",
-            "--assume-yes",
-            "--profile",
-            PROFILE_NAME,
-            "--function-id",
-            f"{ACCOUNT_ADDRESS}::summits_token::mint_to",
-            "--args",
-            f"address:{PLAYER2_ADDRESS}",
-        ],
-        capture_output=True,
-        check=True,
-        universal_newlines=True,
-        cwd="move/",
-    )
-    print(f"[Local] Minted token")
+        # Mint a token to player 2.
+        subprocess.run(
+            [
+                args.aptos_cli_path,
+                "move",
+                "run",
+                "--assume-yes",
+                "--profile",
+                PROFILE_NAME,
+                "--function-id",
+                f"{ACCOUNT_ADDRESS}::summits_token::mint_to",
+                "--args",
+                f"address:{PLAYER2_ADDRESS}",
+            ],
+            capture_output=True,
+            check=True,
+            universal_newlines=True,
+            cwd="move/",
+        )
+        print(f"[Local] Minted token")
 
     # Sit here while the local testnet runs.
     print("[Local] Setup complete, local testnet is ready and running")

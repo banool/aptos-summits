@@ -131,7 +131,7 @@ fn initial_spawn(mut commands: Commands, app_seed: Res<AppSeed>) {
     commands.add(move |world: &mut World| {
         world.run_system_once(spawn_mountains);
     });
-    commands.insert_resource(PauseState { paused: false });
+    commands.insert_resource(PauseState { paused: true });
 }
 
 // TODO: Move this to to an update system and scroll each mountain layer.
@@ -140,14 +140,15 @@ fn spawn_mountains(
     window: Query<&Window>,
     mut randomness: ResMut<Randomness>,
 ) {
-    let mut rng = &mut randomness.rng;
+    let rng = &mut randomness.rng;
 
     // Generate sky color.
-    let sky_color = match rng.gen_range(1..4) {
-        1 => rand_color(&mut rng, 1..40, 1..40, 1..40),
-        2 => rand_color(&mut rng, 215..225, 215..225, 230..255),
-        _ => rand_color(&mut rng, 200..255, 200..255, 200..255),
-    };
+    let sky_colors = [
+        Color::rgb_u8(255, 202, 140),
+        Color::rgb_u8(211, 255, 154),
+        Color::rgb_u8(71, 224, 226),
+    ];
+    let sky_color = sky_colors[rng.gen_range(0..sky_colors.len())];
 
     // Generate fog color.
     // let fog_color = rand_color(&mut rng, 1..255, 1..255, 1..255);
@@ -165,10 +166,20 @@ fn spawn_mountains(
     let window = window.single();
     let height = window.resolution.height() as f64;
 
+    // Get mountain color.
+    let mountain_colors = [
+        Color::rgb_u8(129, 128, 85),
+        Color::rgb_u8(167, 154, 93),
+        Color::rgb_u8(191, 182, 129),
+        Color::rgb_u8(230, 230, 230),
+        Color::rgb_u8(132, 134, 135),
+    ];
+
+    let mountain_base_color = mountain_colors[rng.gen_range(0..mountain_colors.len())];
+
     // Generate mountains back to front.
     let mut mountains = Vec::new();
     let num_mountains: u64 = rng.gen_range(4..7);
-    let mountain_base_color = rand_color(&mut rng, 1..255, 1..255, 1..255);
     let base_max_height = height * 0.7;
     // If this is close to 0, the heights of the mountains will be more similar.
     let height_diff_multiplier = 0.7;

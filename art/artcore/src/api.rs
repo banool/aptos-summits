@@ -56,7 +56,7 @@ pub fn token_address_listener(channel: Res<TokenAddressReceiver>, mut commands: 
 // the site at the moment, just drop the tokens.
 
 const NFT_TEXTURE: &'static [u8] =
-    include_bytes!("../../assets/aptos-ecosummit-2024_nft_texture.png");
+    include_bytes!("../../assets/aptos-ecosummit-2024_nft_texture_v2.png");
 const NFT_LOCKUP: &'static [u8] =
     include_bytes!("../../assets/aptos-ecosummit-2024_nft_lockup.png");
 
