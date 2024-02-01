@@ -29,8 +29,8 @@ processor_config:
   dispatcher_config: {}
   common_storage_config:
     initial_starting_version: 421207730
-  processor_config::q
-    contract_address: "0x67a614e8df22d397b7a7057d743e6b30f8ef2820c054a391658c06199187fa3c"
+  processor_config:
+    contract_address: "0x2b0dffa2464757674d45fc0ea0c9cc62debd0d8e38ac3ea57cdf81e344a938e0"
 storage_config:
   connection_string: "postgres://postgres:blah@127.0.0.1:5432/summits"
 blob_store_config:
@@ -39,7 +39,7 @@ blob_store_config:
 bevy_width: 2000
 ```
 
-I store the private key for the module deployer in GCP Secrets Manager.
+I store the private key for the module deployer in GCP Secrets Manager. Derive the contract address from that.
 
 Create a run script like this at `/home/dport/run.sh`:
 ```

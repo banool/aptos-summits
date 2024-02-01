@@ -32,7 +32,7 @@ module addr::summits_collection {
     }
 
     const COLLECTION_NAME: vector<u8> = b"APTOS PASSPORT: Ecosystem Summit One";
-    const COLLECTION_SEED: vector<u8> = b"AptosPassportSummitOneSeed";
+    const COLLECTION_SEED: vector<u8> = b"AptosPassportEcosystemSummitOneSeed";
 
     /// Create the collection and all the related structs.
     /// You can only call this once unless you change COLLECTION_SEED.
@@ -127,7 +127,7 @@ module addr::summits_collection {
     /// Get the collection. Note, if the module is republished with a different
     /// address for the permitted collection creator after the collection has been
     /// created, this will cease to work. Same thing if the collection name is changed.
-    public fun get_collection(): Object<Collection>{
+    public(friend) fun get_collection(): Object<Collection>{
         // Get the address of the account we created to own the collection.
         let collection_creator_address = object::create_object_address(
             &PERMITTED_COLLECTION_CREATOR,

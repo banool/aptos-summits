@@ -95,10 +95,9 @@ function getModuleAddressAndName(network: Network): {
           "0xecf4655ee96b7280a7fc699d009299fd27d10273c050dbc582aa5844c57fd891",
       };
     case Network.MAINNET:
-      // Doesn't work right now.
       return {
         moduleAddress:
-          "0x67a614e8df22d397b7a7057d743e6b30f8ef2820c054a391658c06199187fa3c",
+          "0x2b0dffa2464757674d45fc0ea0c9cc62debd0d8e38ac3ea57cdf81e344a938e0",
       };
     case Network.CUSTOM:
       throw "CUSTOM not supported";
