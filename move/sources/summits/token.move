@@ -3,7 +3,7 @@
 
 module addr::summits_token {
     use addr::summits_collection::{
-        is_creator as is_creator_of_collection,
+        assert_caller_is_collection_creator,
         is_token_owner,
         get_collection_name,
         get_collection_owner_signer,
@@ -13,12 +13,9 @@ module addr::summits_token {
     use std::option;
     use std::string::{Self, String};
     // use aptos_framework::chain_id::{get as get_chain_id};
-    use aptos_std::object::{Self, Object};
+    use aptos_std::object::{Self, Object, TransferRef};
     use aptos_std::string_utils;
-    use aptos_token_objects::token::{Self, MutatorRef};
-
-    /// The caller tried to call a function that requires collection owner privileges.
-    const E_CALLER_NOT_COLLECTION_OWNER: u64 = 1;
+    use aptos_token_objects::token::{Self, MutatorRef, Token};
 
     /// Tried to mint to someone who already owns a token in the collection.
     const E_ALREADY_MINTED: u64 = 2;
@@ -27,6 +24,10 @@ module addr::summits_token {
     struct TokenRefs has key {
         /// We need this so the collection owner can update the URI if necessary.
         mutator_ref: MutatorRef,
+
+        /// We don't need this for now but down the line we might let people swap
+        /// their tokens, so we'll need it for that.
+        transfer_ref: TransferRef,
     }
 
     /// Create a new token in the collection. Anyone can call this.
@@ -56,7 +57,7 @@ module addr::summits_token {
     //
     // Note: I'd rather do this differently, see:
     // https://aptos-org.slack.com/archives/C036X27DZNG/p1705852198895739
-    fun mint_inner(mint_to: address): Object<TokenRefs>{
+    fun mint_inner(mint_to: address): Object<Token> {
         let description = string::utf8(
             b"A commemorative, unique APTOS PASSPORT stamp to celebrate the first ever Aptos Ecosystem Summit, January 22-26, 2024. The Summit brought together 40+ premier Aptos projects, partners, and supporters to celebrate Aptos innovation across the ecosystem."
         );
@@ -86,13 +87,13 @@ module addr::summits_token {
             string::utf8(b"dummy"),
         );
 
-        let mutator_ref = token::generate_mutator_ref(&constructor_ref);
-
         let object_signer = object::generate_signer(&constructor_ref);
+        let mutator_ref = token::generate_mutator_ref(&constructor_ref);
+        let transfer_ref = object::generate_transfer_ref(&constructor_ref);
 
         move_to(
             &object_signer,
-            TokenRefs { mutator_ref }
+            TokenRefs { mutator_ref, transfer_ref }
         );
 
         // It is important we call this after we moved something into the container
@@ -137,19 +138,6 @@ module addr::summits_token {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////
-    //                                  Collection owner                             //
-    ///////////////////////////////////////////////////////////////////////////////////
-
-    /// Confirm the caller is the creator of the collection. Notably they're not the
-    /// owner, an object that the caller owns is.
-    fun assert_caller_is_collection_creator(caller: &signer) {
-        assert !(
-            is_creator_of_collection(caller),
-            error::invalid_state(E_CALLER_NOT_COLLECTION_OWNER)
-        );
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////
     //                                 Collection owner                              //
     ///////////////////////////////////////////////////////////////////////////////////
     // Functions that only the collection owner can call.
@@ -158,7 +146,7 @@ module addr::summits_token {
     /// generate / where we store the image.
     public entry fun set_uri(
         caller: &signer,
-        refs: Object<TokenRefs>,
+        refs: Object<Token>,
         uri: String
     )
         acquires TokenRefs {
@@ -245,7 +233,7 @@ module addr::summits_token {
     }
 
     #[test_only]
-    fun mint_token(caller: &signer,): Object<TokenRefs>{
+    fun mint_token(caller: &signer,): Object<Token> {
         mint_inner(signer::address_of(caller))
     }
 
@@ -269,7 +257,7 @@ module addr::summits_token {
         aptos_std::debug::print(&token::uri(tok2));
     }
 
-    // Confirm that you can't mint twice.
+    // Confirm that you can't mint to the same address twice.
     #[expected_failure(abort_code = 196610, location = Self)]
     #[test(caller = @addr, friend1 = @0x456, friend2 = @0x789, aptos_framework = @aptos_framework)]
     fun test_mint_twice(
@@ -286,6 +274,43 @@ module addr::summits_token {
         );
         mint_token(&friend1);
         mint_token(&friend1);
+    }
+
+    // Confirm that the creator can update the URI.
+    #[test(caller = @addr, friend1 = @0x456, friend2 = @0x789, aptos_framework = @aptos_framework)]
+    fun test_set_uri_creator(
+        caller: signer,
+        friend1: signer,
+        friend2: signer,
+        aptos_framework: signer
+    ) acquires TokenRefs {
+        init_test(
+            &caller,
+            &friend1,
+            &friend2,
+            &aptos_framework
+        );
+        let token = mint_token(&friend1);
+        set_uri(&caller, token, string::utf8(b"new_uri"));
+    }
+
+    // Confirm that others can not update the URI.
+    #[expected_failure(abort_code = 196609, location = addr::summits_collection)]
+    #[test(caller = @addr, friend1 = @0x456, friend2 = @0x789, aptos_framework = @aptos_framework)]
+    fun test_set_uri_not_creator(
+        caller: signer,
+        friend1: signer,
+        friend2: signer,
+        aptos_framework: signer
+    ) acquires TokenRefs {
+        init_test(
+            &caller,
+            &friend1,
+            &friend2,
+            &aptos_framework
+        );
+        let token = mint_token(&friend1);
+        set_uri(&friend1, token, string::utf8(b"new_uri"));
     }
 }
 

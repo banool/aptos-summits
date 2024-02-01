@@ -12,14 +12,8 @@ module addr::summits_collection {
 
     friend addr::summits_token;
 
-    /// The account trying to create the collection is not allowed to do so.
-    const E_COLLECTION_CREATOR_FORBIDDEN: u64 = 1;
-
-    /// The account trying to mutate the collection is not allowed to do so.
-    const E_COLLECTION_MUTATOR_FORBIDDEN: u64 = 2;
-
-    /// The account trying to transfer ownership of the collection is not allowed to do so.
-    const E_COLLECTION_TRANSFERER_FORBIDDEN: u64 = 3;
+    /// The caller tried to call a function that requires collection owner privileges.
+    const E_CALLER_NOT_COLLECTION_OWNER: u64 = 1;
 
     /// The account that is allowed to create the collection. For now we just enforce
     /// that the collection creator is the same account that published the module.
@@ -44,13 +38,10 @@ module addr::summits_collection {
     /// You can only call this once unless you change COLLECTION_SEED.
     public entry fun create(publisher: &signer) {
         // For now only allow the module publisher to create collections.
-        assert !(
-            signer::address_of(publisher) == PERMITTED_COLLECTION_CREATOR,
-            error::invalid_argument(E_COLLECTION_CREATOR_FORBIDDEN),
-        );
+        assert_caller_is_collection_creator(publisher);
 
         let name = get_collection_name();
-        let max_supply = 100;
+        let max_supply = 250;
 
         // Create an object that will own the collection. This is necessary due to
         // intentional restrictiveness in our token API.
@@ -72,7 +63,7 @@ module addr::summits_collection {
             option::none(),
             // We just use one of the tokens.
             string::utf8(
-                b"https://storage.googleapis.com/aptos-summits/images/0x8f65e467a77e2f77c23c6689c8ff6c1d97f5188e4a6b24c7d0ea369400654395.png"
+                b"https://storage.googleapis.com/aptos-summits/images/collection.png"
             ),
         );
 
@@ -108,10 +99,7 @@ module addr::summits_collection {
     /// Set the URI of the collection.
     public entry fun set_uri(caller: &signer, uri: String)
         acquires CollectionRefs {
-        assert !(
-            is_creator(caller),
-            error::invalid_argument(E_COLLECTION_MUTATOR_FORBIDDEN),
-        );
+        assert_caller_is_collection_creator(caller);
         let collection = get_collection();
         let collection_refs = borrow_global<CollectionRefs>(
             object::object_address(&collection)
@@ -125,10 +113,7 @@ module addr::summits_collection {
     /// Set the description of the collection.
     public entry fun set_description(caller: &signer, description: String)
         acquires CollectionRefs {
-        assert !(
-            is_creator(caller),
-            error::invalid_argument(E_COLLECTION_MUTATOR_FORBIDDEN),
-        );
+        assert_caller_is_collection_creator(caller);
         let collection = get_collection();
         let collection_refs = borrow_global<CollectionRefs>(
             object::object_address(&collection)
@@ -175,6 +160,15 @@ module addr::summits_collection {
     /// owns the collection. The contract deployer is the one we give privileges to.
     public fun is_creator(caller: &signer): bool {
         signer::address_of(caller) == PERMITTED_COLLECTION_CREATOR
+    }
+
+    /// Confirm the caller is the creator of the collection. Notably they're not the
+    /// owner, an object that the caller owns is.
+    public fun assert_caller_is_collection_creator(caller: &signer) {
+        assert !(
+            is_creator(caller),
+            error::invalid_state(E_CALLER_NOT_COLLECTION_OWNER)
+        );
     }
 
     /// Returns true if the given account owns a token in the collection.
