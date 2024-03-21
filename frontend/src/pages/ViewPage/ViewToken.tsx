@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from "@chakra-ui/react";
+import { Box, Flex, Link, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import init, { run } from "../../summits/summits";
 
@@ -16,7 +16,7 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
   const renderWidth = 2000;
 
   // How much of the page the art should take up.
-  const artFraction = 0.8;
+  const artFraction = 0.75;
 
   const [scale, setScale] = useState(0.1);
 
@@ -81,8 +81,34 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
       flexDirection="column"
     >
       {loaded && (
-        <Box paddingBottom={5}>
-          <Text>Click on the art and then press P to pause / unpause.</Text>
+        <Box>
+          <Box
+            textAlign="center"
+            paddingLeft={35}
+            paddingRight={35}
+            paddingBottom={2}
+          >
+            <Text>Click on the art and then press P to pause / unpause.</Text>
+          </Box>
+          <Box
+            textAlign="center"
+            paddingLeft={40}
+            paddingRight={40}
+            paddingBottom={5}
+          >
+            <Text>
+              Note: Due to some unfortunate portability problems with the RNG
+              library + JS + WASM, the art will likely look different here than
+              it does for your actual token.{" "}
+              <Link
+                color={"blueviolet"}
+                href="https://github.com/rust-random/rand/issues/1415"
+              >
+                Learn more
+              </Link>
+              .
+            </Text>
+          </Box>
         </Box>
       )}
       {button}
