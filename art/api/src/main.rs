@@ -55,6 +55,7 @@ async fn main() {
     let app_config = AppConfig {
         width,
         initial_token_address: "0x5".to_string(),
+        paused: true,
     };
 
     let mut bevy_app = app_config.build_for_api(None, ApiChannels {

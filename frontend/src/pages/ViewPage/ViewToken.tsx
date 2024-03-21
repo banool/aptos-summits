@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Text } from "@chakra-ui/react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import init, { run } from "../../summits/summits";
 
@@ -51,6 +51,7 @@ export const ViewToken = ({ tokenAddress }: { tokenAddress: string }) => {
     setLoaded(true);
 
     // This blocks forever.
+    console.log("Generating for token", tokenAddress);
     run(renderWidth, tokenAddress, `#${CANVAS_ID}`);
   }
 

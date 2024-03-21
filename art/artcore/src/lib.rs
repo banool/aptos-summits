@@ -1,6 +1,9 @@
 // https://github.com/bevyengine/bevy/issues/11493
 // https://github.com/bevyengine/bevy/issues/11494
 
+// See this note on portability for something explaining why the results are different
+// on native MacOS vs WASM vs etc: https://github.com/rust-random/rand/issues/1415.
+
 #[cfg(feature = "api")]
 mod api;
 
@@ -13,7 +16,7 @@ use bevy::{
 use bevy_prototype_lyon::prelude::*;
 use clap::Parser;
 use rand::{Rng, SeedableRng};
-use rand_chacha::ChaCha8Rng;
+use rand_chacha::ChaCha8Rng as MyRng;
 use sha2::{Digest, Sha256};
 use std::ops::Range;
 
@@ -27,6 +30,9 @@ pub struct AppConfig {
     // TODO: If we can make the Rust SDK less massive, use AccountAddress instead.
     #[clap(long)]
     pub initial_token_address: String,
+
+    #[clap(long)]
+    pub paused: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -65,6 +71,9 @@ impl AppConfig {
         app.insert_resource(AppSeed {
             token_address: self.initial_token_address,
         })
+        .insert_resource(PauseState {
+            paused: self.paused,
+        })
         .add_plugins(ShapePlugin)
         .add_systems(Startup, initial_spawn)
         .add_systems(Update, handle_keys)
@@ -83,7 +92,8 @@ impl AppConfig {
     }
 }
 
-fn rand_color(rng: &mut ChaCha8Rng, r: Range<u8>, g: Range<u8>, b: Range<u8>) -> Color {
+#[allow(dead_code)]
+fn rand_color(rng: &mut MyRng, r: Range<u8>, g: Range<u8>, b: Range<u8>) -> Color {
     Color::rgb_u8(rng.gen_range(r), rng.gen_range(g), rng.gen_range(b))
 }
 
@@ -98,7 +108,7 @@ fn interpolate(left: Color, right: Color, left_weight: f32) -> Color {
     Color::rgba(red, green, blue, alpha)
 }
 
-fn get_rng(token_address: &str) -> ChaCha8Rng {
+fn get_rng(token_address: &str) -> MyRng {
     // Convert the token address into a u64 for the seed.
     let mut hasher = Sha256::new();
     hasher.update(&token_address);
@@ -106,16 +116,16 @@ fn get_rng(token_address: &str) -> ChaCha8Rng {
     let first_eight_bytes = &result[0..8];
     let seed = u64::from_be_bytes(first_eight_bytes.try_into().unwrap());
 
-    println!("Token address: {} // Seed {}", token_address, seed);
+    info!("Token address: {} // Seed {}", token_address, seed);
 
     // Build deterministic rng with seed.
-    ChaCha8Rng::seed_from_u64(seed)
+    MyRng::seed_from_u64(seed)
 }
 
 // This is not Clone on purpose, we only want to use one randomness.
 #[derive(Resource)]
 struct Randomness {
-    rng: ChaCha8Rng,
+    rng: MyRng,
 }
 
 impl Randomness {
@@ -131,7 +141,6 @@ fn initial_spawn(mut commands: Commands, app_seed: Res<AppSeed>) {
     commands.add(move |world: &mut World| {
         world.run_system_once(spawn_mountains);
     });
-    commands.insert_resource(PauseState { paused: true });
 }
 
 // TODO: Move this to to an update system and scroll each mountain layer.
@@ -149,6 +158,8 @@ fn spawn_mountains(
         Color::rgb_u8(71, 224, 226),
     ];
     let sky_color = sky_colors[rng.gen_range(0..sky_colors.len())];
+
+    info!("Sky color: {:?}", sky_color);
 
     // Generate fog color.
     // let fog_color = rand_color(&mut rng, 1..255, 1..255, 1..255);
@@ -194,7 +205,7 @@ fn spawn_mountains(
         // Scale max_height based on z-order.
         let max_height =
             base_max_height * (1.0 - (i as f64 / num_mountains as f64 * height_diff_multiplier));
-        println!(
+        info!(
             "Mountain {} min height {} max height: {}",
             i, min_height, max_height
         );
@@ -224,7 +235,7 @@ struct PauseState {
 fn handle_keys(keyboard_input: Res<Input<KeyCode>>, mut pause_state: ResMut<PauseState>) {
     if keyboard_input.just_pressed(KeyCode::P) {
         pause_state.paused = !pause_state.paused;
-        println!("Paused: {}", pause_state.paused);
+        info!("Paused: {}", pause_state.paused);
     }
 }
 

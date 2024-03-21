@@ -15,6 +15,7 @@ pub fn run_bevy_app(
     let app_config = AppConfig {
         width: width as f32,
         initial_token_address: "0x5".to_string(),
+        paused: true,
     };
 
     let mut bevy_app = app_config.build_for_api(None, ApiChannels {

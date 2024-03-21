@@ -15,6 +15,8 @@ import csv
 import json
 import logging
 import subprocess
+import random
+import time
 import urllib.request
 
 import yaml
@@ -27,6 +29,7 @@ def parse_args():
     parser.add_argument("path")
     parser.add_argument("--profile", required=True)
     parser.add_argument("--assume-yes", action="store_true")
+    parser.add_argument("--randomize", action="store_true", help="Randomize the order")
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -49,6 +52,10 @@ def main():
         reader = csv.reader(csvfile)
         for row in reader:
             address = row[6]
+            if not address:
+                continue
+            if address == "not found":
+                continue
             raw.append(address)
 
     addresses = []
@@ -65,7 +72,8 @@ def main():
             )
             maybe_address = name_to_address(address)
             try:
-                int(address, 16)
+                int(maybe_address, 16)
+                logging.info(f"Name {address} is 0x{maybe_address}")
                 address = maybe_address
             except:
                 logging.warning(f"Invalid address, not an ANS name either: {address}")
@@ -78,6 +86,9 @@ def main():
 
     # Remove duplicates while preserving order.
     addresses = list(dict.fromkeys(addresses))
+
+    if args.randomize:
+        random.shuffle(addresses)
 
     function_id = f"{contract_address}::summits_token::mint_to"
     for address in addresses:
@@ -98,6 +109,8 @@ def main():
             ]
             if args.assume_yes:
                 cmd.append("--assume-yes")
+                # Give the indexer some time, just in case.
+                # time.sleep(3)
             subprocess.run(
                 cmd,
                 check=True,
